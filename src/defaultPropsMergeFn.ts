@@ -21,7 +21,8 @@ export const defaultPropsMergeFn: DefaultPropsMergeFn = ({
       continue;
     }
     if (key === 'className') {
-      mergedProps[key] = (innerProps[key] ?? '') + (outerProps[key] ?? '');
+      mergedProps[key] =
+        (innerProps[key] ?? '') + ' ' + (outerProps[key] ?? '');
     } else if (
       typeof innerProps[key] === 'function' &&
       typeof outerProps[key] === 'function'
