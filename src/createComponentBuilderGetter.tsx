@@ -22,6 +22,14 @@ import {
   useCreateValueObservable,
 } from './utils/ValueObservable';
 
+console.error(
+  "current implementation of pluck all props probably doesn't work "
+);
+
+console.error(
+  "remember to add the outer ref to props.peek, and make sure props.peek doesn't return the actual props object that react gave you"
+);
+
 export const createComponentBuilderGetter: ComponentBuilderGetter = <
   RootTag extends ReactTag
 >(
