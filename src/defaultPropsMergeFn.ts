@@ -1,7 +1,7 @@
-import { PropsMergeFn } from './types';
+import { DefaultPropsMergeFn } from './types';
 import { mergeRefs } from './utils/mergeRefs';
 
-export const defaultPropsMergeFn: PropsMergeFn = ({
+export const defaultPropsMergeFn: DefaultPropsMergeFn = ({
   innerProps: { ref: innerRef, ...innerProps },
   outerProps: { ref: outerRef, ...outerProps },
 }) => {
@@ -14,7 +14,7 @@ export const defaultPropsMergeFn: PropsMergeFn = ({
   for (const key in outerProps) {
     if (!(key in innerProps)) continue;
     if (key === 'style') {
-      (mergedProps as any)[key] = {
+      mergedProps[key] = {
         ...innerProps[key],
         ...outerProps[key],
       };
@@ -26,10 +26,11 @@ export const defaultPropsMergeFn: PropsMergeFn = ({
       typeof innerProps[key] === 'function' &&
       typeof outerProps[key] === 'function'
     ) {
-      (mergedProps as any)[key] = function (...args: any[]) {
+      mergedProps[key] = function (...args: any[]) {
         outerProps[key](...args);
         return innerProps[key](...args);
       };
     }
   }
+  return mergedProps;
 };

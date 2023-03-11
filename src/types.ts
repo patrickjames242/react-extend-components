@@ -23,6 +23,11 @@ export type RootPropsToIncludeConstraint<RootTag extends ReactTag> =
   | number
   | symbol;
 
+export type DefaultPropsMergeFn = (info: {
+  outerProps: ResultComponentProps<any, any, any, any>;
+  innerProps: ReactTagProps<any>;
+}) => ReactTagProps<any>;
+
 export type PropsMergeFn<
   RootTag extends ReactTag = any,
   AdditionalProps extends object = any,
@@ -36,12 +41,7 @@ export type PropsMergeFn<
     RootPropsToInclude
   >;
   innerProps: ReactTagProps<RootTag>;
-  defaultMergeFn: PropsMergeFn<
-    RootTag,
-    AdditionalProps,
-    RefType,
-    RootPropsToInclude
-  >;
+  defaultMergeFn: DefaultPropsMergeFn;
 }) => ReactTagProps<RootTag>;
 
 export interface Props<
