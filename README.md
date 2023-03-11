@@ -210,23 +210,19 @@ export const SubmitButton = ComponentBuilders.button<{
    buttonTitle: string;
    Icon?: ComponentType<{className?: string}>
 }>((Button, props) => {
-
    const { buttonTitle, Icon } = props.pluck(
       // completely type-safe, you can only specify known properties
       'buttonTitle', 
       'Icon'
    ); 
-   
    return <Button className="submit-button">
       { buttonTitle ?? 'Submit' }
       <Icon className="submit-button-icon">
    </Button>
-   
-})
-
+});
 
 <SubmitButton
-   tooltipTitle="Submit"
+   Icon={MyIcon}
    buttonTitle="Submit"
    onClick={() => {
       // perform some action
@@ -286,4 +282,107 @@ const Link = ComponentBuilders.a((A, props) => {
       My AwesomeLink
    </A>
 });
+```
+
+## Handling Refs
+
+When working with function components, React prevents you from treating a ref like you would a regular prop. You'd have to use forwardRef to access a ref that a user has passed to the component. This package attempts to reverse this and allow you to use a ref just like any other prop.
+
+You can pluck a ref as you would expect.
+
+```tsx
+import { ComponentBuilders } from './ComponentBuilders';
+
+const ListItemView = ComponentBuilders.div((Div, props) => {
+   
+   const { ref } = props.pluck('ref') // now the ref won't be passed to the underlying element
+   
+   return <Div className="list-item-view">
+      {/* ... */}
+   </Div>
+});
+```
+
+Here's how you would implement a custom ref.
+
+```tsx
+import { ComponentBuilders } from './ComponentBuilders';
+import { useImperativeHandle } from 'react';
+
+const DialogBox = ComponentBuilders.div<
+   {}, // add custom prop types here
+   { // add the type of the ref as the second generic parameter
+      setOpened: (isOpen: boolean) => void; 
+   } 
+>((Div, props) => {
+   const { ref } = props.pluck('ref'); // pluck the ref so it won't be passed to the underlying element
+   
+   useImperativeHandle(ref, () => ({
+      setOpened: (isOpened) => {
+         // implementation...
+      }
+   }), []);
+
+   return <Div className="dialog-box">
+      {/* ... */}
+   </Div>
+});
+```
+
+## Custom Components
+
+By default, the `createComponentBuilderGroup` factory function gives you access to all the html elements listed in React's JSX.IntrinsicElements interface.
+
+You're able to use them with this convenient syntax.
+
+```tsx
+// in ComponentBuilders.ts
+
+import { createComponentBuilderGroup } from 'react-extend-components';
+
+export const ComponentBuilders = createComponentBuilderGroup();
+
+// in MyComponent.tsx
+
+import { ComponentBuilders } from './ComponentBuilders';
+
+export const MyComponent = ComponentBuilders.div( // or section, or form, or button, or any other html tag
+   Div => {
+      return <Div>{/* ... */}</Div>
+   }
+);
+```
+
+But you also have the ability to do the same with custom components that you've made yourself.
+
+```tsx
+import { ComponentBuilders } from './ComponentBuilders';
+import { MainAppButton } from './MainAppButton';
+
+export const MyComponent = ComponentBuilders(MainAppButton)(Button => {
+   return <Button>{/* ... */}</Button>
+})
+```
+
+You can also define custom components in an `additionalComponents` object when creating your component builder so that you can access them on the builder using the same dot syntax that you would use for html elements.
+
+```tsx
+// in ComponentBuilders.ts
+
+import { MainAppButton } from './MainAppButton';
+import { createComponentBuilderGroup } from 'react-extend-components';
+
+export const ComponentBuilders = createComponentBuilderGroup({
+   MainAppButton
+});
+
+// in MyComponent.tsx
+
+import { ComponentBuilders } from './ComponentBuilders';
+
+export const MyComponent = ComponentBuilders.MainAppButton(
+   Button => {
+      return <Button />
+   }
+);
 ```
