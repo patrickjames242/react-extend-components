@@ -1,6 +1,17 @@
 # react-extend-components
 This package makes it easy to create components that are based on existing components, while handling prop merging, ref forwarding, and appropriate typing (with TypeScript), automatically.
 
+## Table of Contents
+
+- [Installation](#installation)
+- [Basic Usage](#basic-usage)
+- [Reasoning](#reasoning)
+- [Customizing Props](#customizing-props)
+- [Peeking](#peeking)
+- [Handling Refs](#handling-refs)
+- [Custom Components](#custom-components)
+- [Merging Props / Refs](#merging-props--refs)
+
 ## Installation
 
 ```sh
