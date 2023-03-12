@@ -1,7 +1,12 @@
 # react-extend-components
 This package makes it easy to create components that are based on existing components, while handling prop merging, ref forwarding, and appropriate typing (with TypeScript), automatically.
 
-Here's an example of basic usage. 
+## Installation
+
+```sh
+$ npm install react-extend-components
+```
+## Basic Usage
 
 ```tsx
 // in ComponentBuilders.ts
@@ -15,25 +20,33 @@ export const ComponentBuilders = createComponentBuilderGroup();
 import { ComponentBuilders } from './ComponentBuilders';
 
 export const SubmitButton = ComponentBuilders.button(Button => {
-   return <Button style={{
-      backgroundColor: 'blue',
-      borderRadius: '10px',
-      color: 'white'
-   }}>
+   return <Button 
+      className="SubmitButton" 
+      style={{
+         backgroundColor: 'blue',
+         borderRadius: '10px',
+         color: 'white'
+      }}
+   >
       Submit
    </Button>
 })
 
 export function Form(){
+   const submitButtonRef = useRef<HTMLButtonElement>(null);
    return <>
       {/* ... */}
       <SubmitButton 
+         ref={submitButtonRef} // ref is forwarded automatically
          style={{color: 'gray'}} // color style is overridden automatically
+         // we can pass any prop we want to the button element without have to implement it in the component
+         onClick={() => {
+            // perform some click action
+         }}
       /> 
       {/* ... */}
    </>
 }
-
 ```
 
 ## Reasoning
@@ -57,10 +70,9 @@ function SubmitButton({
       Submit
    </button>
 }
-
 ```
 
-Here we're giving users the ability to set any prop for our underlying button element, and if they happen to set the `className` or `style` props, we simply merge their values with ours.
+Here we're giving users the ability to set any prop for our underlying button element, and if they happen to set the `className` or `style` props, we simply merge their values with the values set within the component.
 
 This seems easy enough. But what if the user wanted to add an `onClick` listener and an `onMouseUp` listener to the component and we're already using those within the component? We'd have to merge those two functions as well.
 
@@ -228,12 +240,13 @@ export const SubmitButton = ComponentBuilders.button<{
       // perform some action
    }}
 />
-
 ```
 
-Here we're 'plucking' certain props that were provided to the outermost component for use within our component. Whatever props you pass to the `props.pluck` will be hidden from the underlying element. This will prevent pesky errors from react as well as prevent unexpected behavior if your prop names conflict with html attribute names.
+Here we're 'plucking' certain props that were provided to the outermost component for use within our component. Whatever props you pass to the `props.pluck` function will be hidden from the underlying element. This will prevent pesky errors from react as well as prevent unexpected behavior if your prop names conflict with html attribute names.
 
-Additionally, `props.pluck` doesn't restrict you to properties you defined yourself. You can pluck any prop the user passes to the outermost component, even refs!
+`props.pluck` must be called on every render, if on every render you'd want to hide the props from the underlying element.
+
+Additionally, `props.pluck` doesn't restrict you to properties you've defined yourself. You can pluck any prop the user passes to the outermost component, even refs!
 
 ### The `children` Prop
 
@@ -386,3 +399,134 @@ export const MyComponent = ComponentBuilders.MainAppButton(
    }
 );
 ```
+
+## Merging Props / Refs
+
+When you pass the same prop to the resulting component as well as to the underlying element / component, the library has to figure out how to merge the two props. Here is how merging is handled for the various props.
+
+- **The `style` prop:** The style properties passed to the outermost component will override the properties passed to the inner element.
+
+```tsx
+import { ComponentBuilders } from './ComponentBuilders';
+
+export const MyButton = ComponentBuilders.button(Button => {
+   return <Button style={{
+      backgroundColor: 'purple',
+      color: 'white',
+   }}>My Button</Button>
+});
+
+<MyButton style={{
+   backgroundColor: 'red',
+}}/>
+
+// the resulting style will look like this: 
+// {
+//    backgroundColor: 'red',
+//    color: 'white',
+// }
+```
+- **The `className` prop:** The className string passed to the outermost component is appended to the className string passed to the inner element.
+```tsx
+import { ComponentBuilders } from './ComponentBuilders';
+
+export const MyButton = ComponentBuilders.button(Button => {
+   return <Button className="My-Button">My Button</Button>
+});
+
+<MyButton className="some-other-class"/>
+
+// the resulting className will look like this: 
+// "My-Button some-other-class"
+```
+- **Refs:** The `ref` passed to the outermost component is merged with the `ref` passed to the inner element using the `mergeRefs` function that this library exports. This function works by returning a `RefCallback` that sets the ref value of all the refs when it is called by react.
+
+- **Functions:** Functions are merged together by passing a new function to the prop that first calls the inner component function prop, then the outer one. The return value of the inner prop is the one that the function will return (in case a return value is needed).
+
+```tsx
+import { ComponentBuilders } from './ComponentBuilders';
+
+export const MyButton = ComponentBuilders.button(Button => {
+   return <Button 
+      onClick={() => {
+         // This function will be called first,
+         // and any value returned here will be returned from the actual callback
+      }}
+   >My Button</Button>
+});
+
+<MyButton 
+   onClick={() => {
+      // This function is called second
+      // It's return value is ignored
+   }}
+/>
+```
+
+- **Any Other Prop:** For any other prop, the inner props will override the outer props.
+
+### Custom Merging
+
+You are given the option to implement a custom merge function if the provided merge functionality is insufficient. 
+
+Here's how you would implement it.
+
+```tsx
+import { createComponentBuilderGroup } from 'react-extend-components';
+
+export const ComponentBuilders = createComponentBuilderGroup({
+   propsMergeFn: ({ 
+      innerProps, 
+      outerProps, 
+      defaultMergeFn 
+   }) => {
+      const resultingProps = {/* ... */}
+      // implement your custom merge strategy
+      return resultingProps;
+   },
+});
+```
+
+You are provided with the `innerProps`, which are the props that were passed to the innermost element, and the `outerProps`, which are the props the users of your resulting component have passed to it.
+
+Because refs are treated like regular props in this library, the `ref` passed to the outermost component will be included in `outerProps` and the `ref` passed to the inner component will be included in `innerProps`. This means you would be responsible for ensuring these are merged properly. You may use the `mergeRefs` function exported by this library if you so desire.
+
+You are also provided with the `defaultMergeFn` in the merge function, which you may find useful if you'd just like to merge a specific prop but have the library handle the rest.
+
+```tsx
+import { createComponentBuilderGroup } from 'react-extend-components';
+
+export const ComponentBuilders = createComponentBuilderGroup({
+   propsMergeFn: ({ 
+      innerProps, 
+      outerProps, 
+      defaultMergeFn 
+   }) => {
+      const resultingProps = defaultMergeFn({ 
+         innerProps, 
+         outerProps 
+      });
+      // customize the result a little bit
+      return resultingProps;
+   },
+});
+```
+
+You can also specify a customized merge function at the individual component level.
+
+```tsx
+import { ComponentBuilders } from './ComponentBuilders';
+
+const MyComponent = ComponentBuilders.div(Div => {
+   return <Div></Div>
+}, ({
+   innerProps,
+   outerProps,
+   defaultMergeFn
+}) => {
+   const mergedProps = {/* ... */}
+   /// customized merge implementation
+   return 
+});
+```
+This will, of course, override the merge function at the Component Builder level.

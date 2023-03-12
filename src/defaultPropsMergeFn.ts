@@ -28,8 +28,9 @@ export const defaultPropsMergeFn: DefaultPropsMergeFn = ({
       typeof outerProps[key] === 'function'
     ) {
       mergedProps[key] = function (...args: any[]) {
+        const innerFnReturnVal = innerProps[key](...args);
         outerProps[key](...args);
-        return innerProps[key](...args);
+        return innerFnReturnVal;
       };
     }
   }
