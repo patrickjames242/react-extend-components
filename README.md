@@ -50,7 +50,7 @@ export function Form(){
       <SubmitButton 
          ref={submitButtonRef} // ref is forwarded automatically
          style={{color: 'gray'}} // color style is overridden automatically
-         // we can pass any prop we want to the button element without have to implement it in the component
+         // we can pass any prop we want to the button element without having to implement it in the component
          onClick={() => {
             // perform some click action
          }}
@@ -198,7 +198,7 @@ export function Form(){
    return <>
       {/* ... */}
       <SubmitButton 
-         // the ref is automatically forwarded to the underlying component
+         // the ref is automatically forwarded to the underlying element
          ref={submitButtonRef} 
          // the className is automatically appended to the root element's className
          className="some-additional-class"
@@ -259,6 +259,8 @@ Here we're 'plucking' certain props that were provided to the outermost componen
 
 Additionally, `props.pluck` doesn't restrict you to properties you've defined yourself. You can pluck any prop the user passes to the outermost component, even refs!
 
+Note that if any of your custom prop names clash with the base element's prop names (`button` in the above case), then the types of your custom props will override that of the base element.
+
 ### The `children` Prop
 
 By default, the `children` prop is excluded from the type information of the resulting component. This is because, usually, components would want to add their own children to the underlying element or have specific control over how values provided to `children` are dealt with.
@@ -274,7 +276,7 @@ const HeaderView = ComponentBuilders.header(Header => {
 
 <HeaderView>Custom Text</HeaderView> // TypeScript error! There is no children prop type associated with this component!
 ```
-If you want to give users the ability add a `children` prop, add it to your custom props type information.
+If you want to give users the ability to add a `children` prop, add it to your custom props type information.
 
 ```tsx
 import { ComponentBuilders } from './ComponentBuilders';
@@ -377,7 +379,7 @@ export const MyComponent = ComponentBuilders.div( // or section, or form, or but
 );
 ```
 
-But you also have the ability to do the same with custom components that you've made yourself.
+But you also have the ability to do the same with custom components that you've made yourself. The library makes this completely type-safe as well.
 
 ```tsx
 import { ComponentBuilders } from './ComponentBuilders';
@@ -387,6 +389,8 @@ export const MyComponent = ComponentBuilders(MainAppButton)(Button => {
    return <Button>{/* ... */}</Button>
 })
 ```
+
+Please note, however, that the types for all the props of the root element (`MainAppButton` in this case), are marked as optional by default. If you would like to require those props, add them to your [custom props](#customizing-props) generic parameter.
 
 You can also define custom components in an `additionalComponents` object when creating your component builder so that you can access them on the builder using the same dot syntax that you would use for html elements.
 
