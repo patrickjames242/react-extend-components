@@ -479,6 +479,22 @@ export const MyButton = ComponentBuilders.button(Button => {
 ```
 
 - **Any Other Prop:** For any other prop, the inner props will override the outer props.
+```tsx
+import { ComponentBuilders } from './ComponentBuilders';
+
+export const MyButton = ComponentBuilders.button(Button => {
+   return <Button 
+      title="My Button" // the inner prop takes precedence
+   >My Button</Button>
+});
+
+<MyButton 
+   title="My Favorite Button" // this value will be ignored
+/>
+
+// the resulting button title will be "My Button"
+
+```
 
 ### Custom Merging
 
