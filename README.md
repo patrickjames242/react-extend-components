@@ -502,6 +502,8 @@ You are provided with the `innerProps`, which are the props that were passed to 
 
 Because refs are treated like regular props in this library, the `ref` passed to the outermost component will be included in `outerProps` and the `ref` passed to the inner component will be included in `innerProps`. This means you would be responsible for ensuring these are merged properly. You may use the `mergeRefs` function exported by this library if you so desire.
 
+Note that you will only receive props in the `outerProps` object that were not 'plucked' within the component.
+
 You are also provided with the `defaultMergeFn` in the merge function, which you may find useful if you'd just like to merge a specific prop but have the library handle the rest.
 
 ```tsx

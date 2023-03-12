@@ -22,14 +22,6 @@ import {
   useCreateValueObservable,
 } from './utils/ValueObservable';
 
-console.error(
-  "current implementation of pluck all props probably doesn't work "
-);
-
-console.error(
-  "remember to add the outer ref to props.peek, and make sure props.peek doesn't return the actual props object that react gave you"
-);
-
 export const createComponentBuilderGetter: ComponentBuilderGetter = <
   RootTag extends ReactTag
 >(
@@ -59,7 +51,7 @@ export const createComponentBuilderGetter: ComponentBuilderGetter = <
       >
     > = (outerProps, outerRef) => {
       const pluckedProps = new Set<string | number | symbol>();
-      let pluckAllProps = false;
+      const pluckAllProps = { pluckAllProps: false }; // we need this to be a reference to an object so that we can mutate it in the pluckAll function
 
       const observableValues = useCreateValueObservable({
         outerProps,
@@ -72,12 +64,12 @@ export const createComponentBuilderGetter: ComponentBuilderGetter = <
           const Fn: ForwardRefRenderFunction<
             ReactTagProps<RootTag>['ref'],
             ReactTagProps<RootTag>
-          > = ({ children, ...props }, innerRef) => {
+          > = ({ children, ...innerProps }, innerRef) => {
             const { outerProps, pluckedProps, pluckAllProps } =
               useConsumeObservableValue(observableValues);
 
             const preparedOuterProps = (() => {
-              if (pluckAllProps) return {};
+              if (pluckAllProps.pluckAllProps) return {};
               const outer: any = {
                 ...outerProps,
               };
@@ -90,7 +82,7 @@ export const createComponentBuilderGetter: ComponentBuilderGetter = <
             })();
 
             const preparedInnerProps = (() => {
-              const inner: any = { ...props };
+              const inner: any = { ...innerProps };
               delete inner.ref; // because react annoyingly adds a ref getter and setter to props that throws errors to remind us not to try to access it there
               innerRef && (inner.ref = innerRef);
               return inner;
@@ -141,7 +133,19 @@ export const createComponentBuilderGetter: ComponentBuilderGetter = <
         const props = { ...outerProps };
         delete props['ref']; // because react annoyingly adds a ref getter and setter to props to remind us not to try to access it there
         if (outerRef) props.ref = outerRef;
-        pluckAllProps = true;
+        pluckAllProps.pluckAllProps = true;
+        return props;
+      };
+
+      const peek: Props<
+        RootTag,
+        AdditionalProps,
+        RefType,
+        RootPropsToInclude
+      >['peek'] = () => {
+        const props = { ...outerProps };
+        delete props['ref']; // because react annoyingly adds a ref getter and setter to props to remind us not to try to access it there
+        if (outerRef) props.ref = outerRef;
         return props;
       };
 
@@ -150,7 +154,7 @@ export const createComponentBuilderGetter: ComponentBuilderGetter = <
           {renderFn(RootComponentFn, {
             pluckAll,
             pluck,
-            peek: () => outerProps,
+            peek,
           })}
         </>
       );
