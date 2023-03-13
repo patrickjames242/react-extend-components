@@ -3,7 +3,7 @@ export function mergeRefs<T = any>(
     React.MutableRefObject<T> | React.LegacyRef<T> | undefined | null
   >
 ): React.RefCallback<T> | undefined {
-  if (!refs.some((x) => x == null)) return undefined; // if there are only null or undefined elements in the array we return undefined
+  if (!refs.some((x) => x != null)) return undefined; // if there are only null or undefined elements in the array we return undefined
   return (value) => {
     refs.forEach((ref) => {
       if (typeof ref === 'function') {

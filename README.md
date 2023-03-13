@@ -253,7 +253,7 @@ export const SubmitButton = ComponentBuilders.button<{
 />
 ```
 
-Here we're 'plucking' certain props that were provided to the outermost component for use within our component. Whatever props you pass to the `props.pluck` function will be hidden from the underlying element. This will prevent pesky errors from react as well as prevent unexpected behavior if your prop names conflict with html attribute names.
+Here we're 'plucking' certain props that were provided to the outermost component for use within our component. Whatever props you pass to the `props.pluck` function will be hidden from the underlying element. This will prevent pesky errors from React as well as prevent unexpected behavior if your prop names conflict with html attribute names.
 
 `props.pluck` must be called on every render, if on every render you'd want to hide the props from the underlying element.
 
@@ -454,7 +454,7 @@ export const MyButton = ComponentBuilders.button(Button => {
 // the resulting className will look like this: 
 // "My-Button some-other-class"
 ```
-- **Refs:** The `ref` passed to the outermost component is merged with the `ref` passed to the inner element using the `mergeRefs` function that this library exports. This function works by returning a `RefCallback` that sets the ref value of all the refs when it is called by react.
+- **Refs:** The `ref` passed to the outermost component is merged with the `ref` passed to the inner element using the `mergeRefs` function that this library exports. This function works by returning a `RefCallback` that sets the ref value of all the refs when it is called by React.
 
 - **Functions:** Functions are merged together by passing a new function to the prop that first calls the inner component function prop, then the outer one. The return value of the inner prop is the one that the function will return (in case a return value is needed).
 
