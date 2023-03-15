@@ -19,15 +19,17 @@ $ npm install react-extend-components
 ```
 ## Basic Usage
 
+First define a `ComponentBuilderGroup` that you will import in all of your component files.
+
 ```tsx
 // in ComponentBuilders.ts
-
 import { createComponentBuilderGroup } from 'react-extend-components';
 
 export const ComponentBuilders = createComponentBuilderGroup();
+```
+Now you can start writing your components.
 
-// in Form.tsx
-
+```tsx
 import { ComponentBuilders } from './ComponentBuilders';
 
 export const SubmitButton = ComponentBuilders.button(Button => {
@@ -62,7 +64,7 @@ export function Form(){
 
 ## Reasoning
 
-Sometimes when we create components that are based on other components (like HTML elements), we'd like to give the user of the component the ability to customize the props of the underlying element. Here is how this is often accomplished.
+Sometimes when we create components that are based on other components (like HTML elements), we'd like to give the user of the component the ability to customize the props of the underlying element. Here is how this is often accomplished in normal React components.
 
 ```tsx
 function SubmitButton({
@@ -322,7 +324,6 @@ import { ComponentBuilders } from './ComponentBuilders';
 const ListItemView = ComponentBuilders.div((Div, props) => {
    
    const { ref } = props.pluck('ref') // now the ref won't be passed to the underlying element
-   
    return <Div className="list-item-view">
       {/* ... */}
    </Div>
@@ -342,7 +343,7 @@ const DialogBox = ComponentBuilders.div<
    } 
 >((Div, props) => {
    const { ref } = props.pluck('ref'); // pluck the ref so it won't be passed to the underlying element
-   
+
    useImperativeHandle(ref, () => ({
       setOpened: (isOpened) => {
          // implementation...

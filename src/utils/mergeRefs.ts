@@ -1,3 +1,5 @@
+import { isObject } from './isObject';
+
 export function mergeRefs<T = any>(
   ...refs: Array<
     React.MutableRefObject<T> | React.LegacyRef<T> | undefined | null
@@ -8,7 +10,7 @@ export function mergeRefs<T = any>(
     refs.forEach((ref) => {
       if (typeof ref === 'function') {
         ref(value);
-      } else if (ref != null) {
+      } else if (isObject(ref)) {
         (ref as React.MutableRefObject<T | null>).current = value;
       }
     });

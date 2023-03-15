@@ -17,8 +17,8 @@
     "noUncheckedIndexedAccess": true,
     "strictBindCallApply": true,
     "downlevelIteration": true,
+    "esModuleInterop": true,
     "jsx": "react-jsx",
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "**/__tests__/*"]
+  "include": ["./src"],
 }
