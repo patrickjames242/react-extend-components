@@ -1,6 +1,6 @@
 import { RefCallback, RefObject } from 'react';
+import { setRefValue } from '../testUtils/setRefValue';
 import { mergeRefs } from './mergeRefs';
-import { setRefValue } from './setRefValue';
 
 test('setting the merged ref sets all the refs', () => {
   const mockRefCallback: RefCallback<string> = jest.fn();

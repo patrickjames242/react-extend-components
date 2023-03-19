@@ -457,7 +457,7 @@ export const MyButton = ComponentBuilders.button(Button => {
 ```
 - **Refs:** The `ref` passed to the outermost component is merged with the `ref` passed to the inner element using the `mergeRefs` function that this library exports. This function works by returning a `RefCallback` that sets the ref value of all the refs when it is called by React.
 
-- **Functions:** Functions are merged together by passing a new function to the prop that first calls the inner component function prop, then the outer one. The return value of the inner prop is the one that the function will return (in case a return value is needed).
+- **Functions:** Functions are merged together by passing a new function to the prop that first calls the inner component function prop, then the outer one. The return value of the outer prop is the one that the function will return (if the outer prop is set).
 
 ```tsx
 import { ComponentBuilders } from './ComponentBuilders';
@@ -465,8 +465,9 @@ import { ComponentBuilders } from './ComponentBuilders';
 export const MyButton = ComponentBuilders.button(Button => {
    return <Button 
       onClick={() => {
-         // This function will be called first,
-         // and any value returned here will be returned from the actual callback
+         // This function will be called first
+         // It's return value is ignored if there is an outer function set. 
+         // If not, this return value is returned from the resulting callback
       }}
    >My Button</Button>
 });
@@ -474,23 +475,43 @@ export const MyButton = ComponentBuilders.button(Button => {
 <MyButton 
    onClick={() => {
       // This function is called second
-      // It's return value is ignored
+      // Any value returned here will be returned from the actual callback
    }}
 />
 ```
 
-- **Any Other Prop:** For any other prop, the inner props will override the outer props.
+Please note that in a situation where either the inner prop or outer prop is a function and the other one is a non-function (with the exception of null and undefined), the outer prop will always replace the inner one.
+
 ```tsx
 import { ComponentBuilders } from './ComponentBuilders';
 
 export const MyButton = ComponentBuilders.button(Button => {
    return <Button 
-      title="My Button" // the inner prop takes precedence
+      onClick={() => {
+         // this function will never be called because the corresponding outer prop is a string and it will override this value
+      }}
    >My Button</Button>
 });
 
 <MyButton 
-   title="My Favorite Button" // this value will be ignored
+   onClick={'foo' as any} // obviously you wouldn't do this for an html element but you could theoretically want to do something like this for a custom component
+/>
+
+// the props passed to the underlying button element are as follows: { onClick: "foo" }
+```
+
+- **Any Other Prop:** For any other prop, the outer props will override the inner props.
+```tsx
+import { ComponentBuilders } from './ComponentBuilders';
+
+export const MyButton = ComponentBuilders.button(Button => {
+   return <Button 
+      title="My Button" // this value will be ignored 
+   >My Button</Button>
+});
+
+<MyButton 
+   title="My Favorite Button" // the outer prop takes precedence
 />
 
 // the resulting button title will be "My Button"

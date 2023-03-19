@@ -1,6 +1,6 @@
 import { Ref, RefObject } from 'react';
-import { isObject } from './isObject';
-import { Writable } from './tsHelpers';
+import { isObject } from '../utils/isObject';
+import { Writable } from '../utils/tsHelpers';
 
 export function setRefValue<V>(ref: Ref<V>, value: V | null): void {
   if (typeof ref === 'function') ref(value);

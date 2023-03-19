@@ -2,7 +2,7 @@
   "extends": [
     "eslint:recommended",
     "plugin:react/recommended",
-    "plugin:react-hooks/recommended",
+    "plugin:react-hooks/recommended"
   ],
   "plugins": ["unused-imports"],
   "settings": {
@@ -88,6 +88,13 @@
       "parserOptions": {
         "ecmaVersion": "latest",
         "sourceType": "module"
+      }
+    },
+    {
+      "files": ["**/*.test.ts", "**/*.test.tsx"],
+      "rules": {
+        "max-lines": "off",
+        "@typescript-eslint/no-empty-function": "off"
       }
     }
   ]

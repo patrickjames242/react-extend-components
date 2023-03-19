@@ -1,6 +1,6 @@
 import { RefObject } from 'react';
 import { defaultPropsMergeFn } from './defaultPropsMergeFn';
-import { setRefValue } from './utils/setRefValue';
+import { setRefValue } from './testUtils/setRefValue';
 
 describe('className prop merging', () => {
   test('appends outer className to inner className when both are included', () => {
@@ -11,60 +11,56 @@ describe('className prop merging', () => {
     expect(resultProps.className).toBe('blah2 blah1');
   });
 
-  test('provides only outer className when inner className is undefined', () => {
-    const resultProps = defaultPropsMergeFn({
-      outerProps: { className: 'blah' },
-      innerProps: { className: undefined },
+  describe('provides only outer className when inner className is not provided', () => {
+    test('when undefined', () => {
+      const resultProps = defaultPropsMergeFn({
+        outerProps: { className: 'blah' },
+        innerProps: { className: undefined },
+      });
+      expect(resultProps.className).toBe('blah');
     });
-    expect(resultProps.className).toBe('blah');
+
+    test('when null', () => {
+      const resultProps = defaultPropsMergeFn({
+        outerProps: { className: 'blah' },
+        innerProps: { className: null },
+      });
+      expect(resultProps.className).toBe('blah');
+    });
+
+    test('when not provided', () => {
+      const resultProps = defaultPropsMergeFn({
+        outerProps: { className: 'blah' },
+        innerProps: {},
+      });
+      expect(resultProps.className).toBe('blah');
+    });
   });
 
-  test('provides only outer className when inner className is null', () => {
-    const resultProps = defaultPropsMergeFn({
-      outerProps: { className: 'blah' },
-      innerProps: { className: null },
+  describe('provides only inner className when outer className is not provided', () => {
+    test('when undefined', () => {
+      const resultProps = defaultPropsMergeFn({
+        outerProps: { className: undefined },
+        innerProps: { className: 'blah' },
+      });
+      expect(resultProps.className).toBe('blah');
     });
-    expect(resultProps.className).toBe('blah');
-  });
 
-  test("provides only outer className when inner className isn't provided", () => {
-    const resultProps = defaultPropsMergeFn({
-      outerProps: { className: 'blah' },
-      innerProps: {},
+    test('when null', () => {
+      const resultProps = defaultPropsMergeFn({
+        outerProps: { className: null },
+        innerProps: { className: 'blah' },
+      });
+      expect(resultProps.className).toBe('blah');
     });
-    expect(resultProps.className).toBe('blah');
-  });
 
-  test('provides only inner className when outer className is undefined', () => {
-    const resultProps = defaultPropsMergeFn({
-      outerProps: { className: undefined },
-      innerProps: { className: 'blah' },
+    test('when not provided', () => {
+      const resultProps = defaultPropsMergeFn({
+        outerProps: {},
+        innerProps: { className: 'blah' },
+      });
+      expect(resultProps.className).toBe('blah');
     });
-    expect(resultProps.className).toBe('blah');
-  });
-
-  test('provides only inner className when outer className is null', () => {
-    const resultProps = defaultPropsMergeFn({
-      outerProps: { className: null },
-      innerProps: { className: 'blah' },
-    });
-    expect(resultProps.className).toBe('blah');
-  });
-
-  test("provides only inner className when outer className isn't provided", () => {
-    const resultProps = defaultPropsMergeFn({
-      outerProps: {},
-      innerProps: { className: 'blah' },
-    });
-    expect(resultProps.className).toBe('blah');
-  });
-
-  test('provides only inner className when outer className is undefined', () => {
-    const resultProps = defaultPropsMergeFn({
-      outerProps: { className: undefined },
-      innerProps: { className: 'blah' },
-    });
-    expect(resultProps.className).toBe('blah');
   });
 
   test('className is undefined when neither outer nor inner className is defined', () => {
@@ -84,21 +80,33 @@ describe('className prop merging', () => {
 
 describe('style prop merging', () => {
   test('outer styles override inner styles', () => {
-    const outerStyles = {
-      color: 'red',
-      margin: '2px',
-      backgroundColor: 'green',
-    };
-    const innerStyles = { color: 'blue', margin: '10px', fontSize: '12px' };
     const resultProps = defaultPropsMergeFn({
-      outerProps: { style: outerStyles },
-      innerProps: { style: innerStyles },
+      outerProps: {
+        style: {
+          color: 'red',
+          margin: '2px',
+          backgroundColor: 'green',
+          padding: undefined,
+          zIndex: null,
+        },
+      },
+      innerProps: {
+        style: {
+          color: 'blue',
+          margin: '10px',
+          fontSize: '12px',
+          padding: 37,
+          zIndex: 3,
+        },
+      },
     });
     expect(resultProps.style).toEqual({
       color: 'red',
       backgroundColor: 'green',
       fontSize: '12px',
       margin: '2px',
+      padding: 37,
+      zIndex: null,
     });
   });
 
@@ -179,5 +187,190 @@ describe('ref merging', () => {
         outerProps: { ref: undefined },
       }).ref
     ).toBeUndefined();
+  });
+});
+
+describe('function prop merging', () => {
+  test('outer and inner function props are merged', () => {
+    const outerFn = jest.fn();
+    const innerFn = jest.fn();
+    const resultProps = defaultPropsMergeFn({
+      outerProps: {
+        onClick: outerFn,
+      },
+      innerProps: {
+        onClick: innerFn,
+      },
+    });
+
+    resultProps.onClick('some event');
+
+    expect(outerFn).toHaveBeenCalledTimes(1);
+    expect(outerFn).toHaveBeenCalledWith('some event');
+    expect(innerFn).toHaveBeenCalledTimes(1);
+    expect(innerFn).toHaveBeenCalledWith('some event');
+  });
+
+  test('outer function return value is returned from merged function', () => {
+    const resultProps = defaultPropsMergeFn({
+      outerProps: {
+        onClick: () => 'outer-return-value',
+      },
+      innerProps: {
+        onClick: () => 'inner-return-value',
+      },
+    });
+    const returnValue = resultProps.onClick();
+    expect(returnValue).toEqual('outer-return-value');
+  });
+
+  describe('outer function value is used when inner function value is not provided', () => {
+    test('when inner function value is undefined', () => {
+      const outerFn = jest.fn(() => 'outer-return-value');
+      const resultProps = defaultPropsMergeFn({
+        outerProps: {
+          onClick: outerFn,
+        },
+        innerProps: {
+          onClick: undefined,
+        },
+      });
+      const returnValue = resultProps.onClick('some event');
+      expect(outerFn).toHaveBeenCalledTimes(1);
+      expect(outerFn).toHaveBeenCalledWith('some event');
+      expect(returnValue).toEqual('outer-return-value');
+    });
+
+    test('when inner function value is null', () => {
+      const outerFn = jest.fn(() => 'outer-return-value');
+      const resultProps = defaultPropsMergeFn({
+        outerProps: {
+          onClick: outerFn,
+        },
+        innerProps: {
+          onClick: null,
+        },
+      });
+      const returnValue = resultProps.onClick('some event');
+      expect(outerFn).toHaveBeenCalledTimes(1);
+      expect(outerFn).toHaveBeenCalledWith('some event');
+      expect(returnValue).toEqual('outer-return-value');
+    });
+
+    test('when inner function value is not included', () => {
+      const outerFn = jest.fn(() => 'outer-return-value');
+      const resultProps = defaultPropsMergeFn({
+        outerProps: {
+          onClick: outerFn,
+        },
+        innerProps: {},
+      });
+      const returnValue = resultProps.onClick('some event');
+      expect(outerFn).toHaveBeenCalledTimes(1);
+      expect(outerFn).toHaveBeenCalledWith('some event');
+      expect(returnValue).toEqual('outer-return-value');
+    });
+  });
+
+  describe("inner function value is used when outer function value isn't provided", () => {
+    test('when outer function value is undefined', () => {
+      const innerFn = jest.fn(() => 'inner-return-value');
+      const resultProps = defaultPropsMergeFn({
+        outerProps: {
+          onClick: undefined,
+        },
+        innerProps: {
+          onClick: innerFn,
+        },
+      });
+      const returnValue = resultProps.onClick('some event');
+      expect(innerFn).toHaveBeenCalledTimes(1);
+      expect(innerFn).toHaveBeenCalledWith('some event');
+      expect(returnValue).toEqual('inner-return-value');
+    });
+
+    test('when outer function value is null', () => {
+      const innerFn = jest.fn(() => 'inner-return-value');
+      const resultProps = defaultPropsMergeFn({
+        outerProps: {
+          onClick: null,
+        },
+        innerProps: {
+          onClick: innerFn,
+        },
+      });
+      const returnValue = resultProps.onClick('some event');
+      expect(innerFn).toHaveBeenCalledTimes(1);
+      expect(innerFn).toHaveBeenCalledWith('some event');
+      expect(returnValue).toEqual('inner-return-value');
+    });
+
+    test('when outer function value is not included', () => {
+      const innerFn = jest.fn(() => 'inner-return-value');
+      const resultProps = defaultPropsMergeFn({
+        outerProps: {},
+        innerProps: {
+          onClick: innerFn,
+        },
+      });
+      const returnValue = resultProps.onClick('some event');
+      expect(innerFn).toHaveBeenCalledTimes(1);
+      expect(innerFn).toHaveBeenCalledWith('some event');
+      expect(returnValue).toEqual('inner-return-value');
+    });
+  });
+
+  test("outer value overrides inner value when outer value isn't a function but inner value is", () => {
+    const resultProps = defaultPropsMergeFn({
+      outerProps: {
+        onClick: 'outer-value',
+      },
+      innerProps: {
+        onClick: () => {},
+      },
+    });
+
+    expect(resultProps.onClick).toEqual('outer-value');
+  });
+
+  test("outer value overrides inner value when outer value is a function but inner value isn't", () => {
+    const outerFn = jest.fn();
+    const resultProps = defaultPropsMergeFn({
+      outerProps: {
+        onClick: outerFn,
+      },
+      innerProps: {
+        onClick: 'inner-value',
+      },
+    });
+    resultProps.onClick('some event');
+    expect(outerFn).toHaveBeenCalledTimes(1);
+    expect(outerFn).toHaveBeenCalledWith('some event');
+  });
+});
+
+describe('general prop merging', () => {
+  test('outer props override inner props where needed', () => {
+    const resultProps = defaultPropsMergeFn({
+      outerProps: {
+        prop1: 'outer-prop-value',
+        prop2: undefined,
+        prop3: null,
+        prop4: 123,
+      },
+      innerProps: {
+        prop1: 'inner-prop-value',
+        prop2: 'inner-prop-value',
+        prop3: 'inner-prop-value',
+        prop5: false,
+      },
+    });
+    expect(resultProps).toEqual({
+      prop1: 'outer-prop-value',
+      prop2: 'inner-prop-value',
+      prop3: null,
+      prop4: 123,
+      prop5: false,
+    });
   });
 });

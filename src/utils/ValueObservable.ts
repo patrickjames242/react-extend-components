@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { TinyEmitter } from 'tiny-emitter';
 
 export interface ValueObservable<V> {
@@ -10,12 +10,19 @@ const EMITTER_VALUE_EVENT = 'value';
 
 export function useCreateValueObservable<V>(value: V): ValueObservable<V> {
   const latestValueRef = useRef<V>(value);
-  const emitter = useRef<TinyEmitter>(new TinyEmitter()).current;
+  latestValueRef.current = value;
+
+  const emitter = useMemo(() => new TinyEmitter(), []);
 
   useLayoutEffect(() => {
-    latestValueRef.current = value;
     emitter.emit(EMITTER_VALUE_EVENT, value);
   }, [emitter, value]);
+
+  useEffect(() => {
+    return () => {
+      emitter.off(EMITTER_VALUE_EVENT);
+    };
+  }, [emitter]);
 
   return useMemo<ValueObservable<V>>(() => {
     return {
