@@ -500,6 +500,47 @@ export const MyButton = ComponentBuilders.button(Button => {
 // the props passed to the underlying button element are as follows: { onClick: "foo" }
 ```
 
+- **The `children` prop:** The inner children prop will always override the outer prop if the inner prop is anything other than undefined.
+
+```tsx
+import { ComponentBuilders } from './ComponentBuilders';
+
+export const MyButton = ComponentBuilders.button<{
+   children?: string
+}>(Button => {
+   return <Button>
+      My Button {/* If specified, this value will override any children prop provided in the outer props */}
+   </Button>
+});
+
+<MyButton>
+   My Customized Title {/* This value will be ignored because the inner children prop has been specified */}
+</MyButton>
+
+// the resulting children value will be: "My Button"
+```
+
+If you would like to allow users to customize the children of the component, pluck the `children` prop.
+
+```tsx
+import { ComponentBuilders } from './ComponentBuilders';
+
+export const MyButton = ComponentBuilders.button<{
+   children?: string
+}>((Button, props) => {
+   const { children } = props.pluck('children');
+   return <Button>
+      { children ?? 'My Button'}
+   </Button>
+});
+
+<MyButton>
+   My Customized Title
+</MyButton>
+
+// the resulting children value will be: "My Customized Title"
+```
+
 - **Any Other Prop:** For any other prop, the outer props will override the inner props.
 ```tsx
 import { ComponentBuilders } from './ComponentBuilders';
@@ -544,9 +585,11 @@ You are provided with the `innerProps`, which are the props that were passed to 
 
 Because refs are treated like regular props in this library, the `ref` passed to the outermost component will be included in `outerProps` and the `ref` passed to the inner component will be included in `innerProps`. This means you would be responsible for ensuring these are merged properly. You may use the `mergeRefs` function exported by this library if you so desire.
 
+Similarly, you will also be responsible for merging the `children` props together.
+
 Note that you will only receive props in the `outerProps` object that were not 'plucked' within the component.
 
-You are also provided with the `defaultMergeFn` in the merge function, which you may find useful if you'd just like to merge a specific prop but have the library handle the rest.
+You are provided with the `defaultMergeFn` in the merge function, which you may find useful if you'd just like to merge a specific prop but have the library handle the rest.
 
 ```tsx
 import { createComponentBuilderGroup } from 'react-extend-components';

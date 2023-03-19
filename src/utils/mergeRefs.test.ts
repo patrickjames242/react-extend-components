@@ -9,17 +9,17 @@ test('setting the merged ref sets all the refs', () => {
 
   const mergedRefs = mergeRefs(mockRefCallback, refObj1, refObj2);
   setRefValue(mergedRefs!, 'foo');
-  expect(mockRefCallback).toHaveBeenCalledWith('foo');
+  expect(mockRefCallback).toHaveBeenNthCalledWith(1, 'foo');
   expect(refObj1.current).toBe('foo');
   expect(refObj2.current).toBe('foo');
 
   setRefValue(mergedRefs!, null);
-  expect(mockRefCallback).toHaveBeenCalledWith(null);
+  expect(mockRefCallback).toHaveBeenNthCalledWith(2, null);
   expect(refObj1.current).toBe(null);
   expect(refObj2.current).toBe(null);
 
   setRefValue(mergedRefs!, 'bar');
-  expect(mockRefCallback).toHaveBeenCalledWith('bar');
+  expect(mockRefCallback).toHaveBeenNthCalledWith(3, 'bar');
   expect(refObj1.current).toBe('bar');
   expect(refObj2.current).toBe('bar');
 });

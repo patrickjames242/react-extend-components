@@ -11,7 +11,9 @@ export const defaultPropsMergeFn: DefaultPropsMergeFn = ({
     outerProps
   );
 
-  //TODO: reverse this so outer props override inner props
+  if ('children' in innerProps && innerProps.children !== undefined) {
+    mergedProps.children = innerProps.children;
+  }
 
   for (const key in outerProps) {
     if (!(key in innerProps)) continue;

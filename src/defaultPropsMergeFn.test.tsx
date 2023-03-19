@@ -349,6 +349,54 @@ describe('function prop merging', () => {
   });
 });
 
+describe('children prop merging', () => {
+  test('inner value overrides outer value if inner value is set', () => {
+    const resultProps = defaultPropsMergeFn({
+      outerProps: {
+        children: 'outer-value',
+      },
+      innerProps: {
+        children: 'inner-value',
+      },
+    });
+    expect(resultProps.children).toEqual('inner-value');
+
+    const resultProps2 = defaultPropsMergeFn({
+      outerProps: {
+        children: 'outer-value',
+      },
+      innerProps: {
+        children: null,
+      },
+    });
+    expect(resultProps2.children).toEqual(null);
+  });
+
+  describe("outer value is used when inner value isn't set", () => {
+    test('when inner value is undefined', () => {
+      const resultProps = defaultPropsMergeFn({
+        outerProps: {
+          children: 'outer-value',
+        },
+        innerProps: {
+          children: undefined,
+        },
+      });
+      expect(resultProps.children).toEqual('outer-value');
+    });
+
+    test('when inner value is not included', () => {
+      const resultProps = defaultPropsMergeFn({
+        outerProps: {
+          children: 'outer-value',
+        },
+        innerProps: {},
+      });
+      expect(resultProps.children).toEqual('outer-value');
+    });
+  });
+});
+
 describe('general prop merging', () => {
   test('outer props override inner props where needed', () => {
     const resultProps = defaultPropsMergeFn({

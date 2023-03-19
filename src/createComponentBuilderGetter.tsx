@@ -64,7 +64,7 @@ export const createComponentBuilderGetter: ComponentBuilderGetter = <
           const Fn: ForwardRefRenderFunction<
             ReactTagProps<RootTag>['ref'],
             ReactTagProps<RootTag>
-          > = ({ children, ...innerProps }, innerRef) => {
+          > = (innerProps, innerRef) => {
             const { outerProps, pluckedProps, pluckAllProps } =
               useConsumeObservableValue(observableValues);
 
@@ -99,7 +99,7 @@ export const createComponentBuilderGetter: ComponentBuilderGetter = <
               defaultMergeFn: defaultPropsMergeFn,
             });
 
-            return createElement(rootTag, mergedProps, children);
+            return createElement(rootTag, mergedProps);
           };
           return forwardRef(Fn) as any;
         },
