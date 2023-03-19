@@ -12,6 +12,5 @@ test('returns false for anything other than an object', () => {
   expect(isObject('')).toBe(false);
   expect(isObject(true)).toBe(false);
   expect(isObject(Symbol(''))).toBe(false);
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   expect(isObject(() => {})).toBe(false);
 });
