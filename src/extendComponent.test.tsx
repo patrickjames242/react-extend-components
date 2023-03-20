@@ -1,8 +1,8 @@
 import { create } from 'react-test-renderer';
-import { createComponentBuilderGetter } from './createComponentBuilderGetter';
+import { extendComponent } from './extendComponent';
 
 test('passes props to underlying element', () => {
-  const TestComponent = createComponentBuilderGetter('div')((Div) => {
+  const TestComponent = extendComponent('div')((Div) => {
     return <Div />;
   });
 
@@ -21,12 +21,10 @@ test('passes props to underlying element', () => {
 
 test('plucked props are not passed to the underlying element', () => {
   let propsToPluck: string[];
-  const TestComponent = createComponentBuilderGetter('section')(
-    (Section, props) => {
-      props.pluck(...(propsToPluck as any));
-      return <Section />;
-    }
-  );
+  const TestComponent = extendComponent('section')((Section, props) => {
+    props.pluck(...(propsToPluck as any));
+    return <Section />;
+  });
 
   propsToPluck = ['style', 'className'];
   const component = create(
@@ -52,12 +50,10 @@ test('plucked props are returned from the pluck function', () => {
   let propsToPluck: string[] = [];
   const receivePluckedProps = jest.fn();
 
-  const TestComponent = createComponentBuilderGetter('input')(
-    (Input, props) => {
-      receivePluckedProps(props.pluck(...(propsToPluck as any)));
-      return <Input />;
-    }
-  );
+  const TestComponent = extendComponent('input')((Input, props) => {
+    receivePluckedProps(props.pluck(...(propsToPluck as any)));
+    return <Input />;
+  });
 
   propsToPluck = ['style', 'className'];
 
@@ -87,7 +83,7 @@ test('plucked props are returned from the pluck function', () => {
 });
 
 test('when using pluckAll, no props are passed to the underlying element', () => {
-  const TestComponent = createComponentBuilderGetter('p')((P, props) => {
+  const TestComponent = extendComponent('p')((P, props) => {
     props.pluckAll();
     return <P />;
   });
@@ -139,13 +135,11 @@ test('Peek returns all props, including those that are plucked', () => {
   let propsToPluck: string[] = [];
   const receivePeekedProps = jest.fn();
 
-  const TestComponent = createComponentBuilderGetter('input')(
-    (Input, props) => {
-      props.pluck(...(propsToPluck as any));
-      receivePeekedProps(props.peek());
-      return <Input />;
-    }
-  );
+  const TestComponent = extendComponent('input')((Input, props) => {
+    props.pluck(...(propsToPluck as any));
+    receivePeekedProps(props.peek());
+    return <Input />;
+  });
 
   propsToPluck = ['style', 'className'];
 
@@ -177,7 +171,7 @@ test('Peek returns all props, including those that are plucked', () => {
 });
 
 test('peeked props are always passed to the underlying element', () => {
-  const TestComponent = createComponentBuilderGetter('div')((Div, props) => {
+  const TestComponent = extendComponent('div')((Div, props) => {
     props.peek();
     return <Div />;
   });

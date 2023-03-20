@@ -1,18 +1,18 @@
-export { createComponentBuilderGetter } from './createComponentBuilderGetter';
-export { createComponentBuilderGroup } from './createComponentBuilderGroup';
-export type { BaseCreateComponentBuilderGroupProps } from './createComponentBuilderGroup';
+export { createComponentExtenderGroup } from './createComponentExtenderGroup';
+export type { BaseCreateComponentExtenderGroupProps } from './createComponentExtenderGroup';
 export { defaultPropsMergeFn } from './defaultPropsMergeFn';
+export { extendComponent } from './extendComponent';
 export type {
-  ComponentBuilder,
-  ComponentBuilderGetter,
-  ComponentBuilderGroup,
-  DefaultPropsMergeFn as ComponentBuilderDefaultPropsMergeFn,
-  Props as ComponentBuilderRenderProps,
-  PropsMergeFn as ComponentBuilderPropsMergeFn,
+  ComponentExtender,
+  ComponentExtenderGetter,
+  ComponentExtenderGroup,
+  DefaultPropsMergeFn,
+  Props as ComponentExtenderRenderProps,
+  PropsMergeFn,
   ReactTag,
   ReactTagProps,
-  RenderFn as ComponentBuilderRenderFn,
-  ResultComponentProps as ComponentBuilderResultComponentProps,
-  RootComponent as ComponentBuilderRootComponent,
+  RenderFn as ComponentExtenderRenderFn,
+  ResultComponentProps as ComponentExtenderResultComponentProps,
+  RootComponent as ComponentExtenderRootComponent,
 } from './types';
 export { mergeRefs } from './utils/mergeRefs';

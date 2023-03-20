@@ -6,7 +6,7 @@ import {
 } from 'react';
 import { defaultPropsMergeFn } from './defaultPropsMergeFn';
 import {
-  ComponentBuilderGetter,
+  ComponentExtenderGetter,
   Props,
   PropsMergeFn,
   ReactTag,
@@ -22,11 +22,11 @@ import {
   useCreateValueObservable,
 } from './utils/ValueObservable';
 
-export const createComponentBuilderGetter: ComponentBuilderGetter = <
+export const extendComponent: ComponentExtenderGetter = <
   RootTag extends ReactTag
 >(
   rootTag: RootTag,
-  builderGetterPropsMergeFn?: PropsMergeFn<RootTag>
+  extenderGetterPropsMergeFn?: PropsMergeFn<RootTag>
 ) => {
   return <
     AdditionalProps extends object = {},
@@ -34,7 +34,7 @@ export const createComponentBuilderGetter: ComponentBuilderGetter = <
     RootPropsToInclude extends RootPropsToIncludeConstraint<RootTag> = keyof ReactTagProps<RootTag>
   >(
     renderFn: RenderFn<RootTag, AdditionalProps, RefType, RootPropsToInclude>,
-    builderPropsMergeFn?: PropsMergeFn<
+    extenderPropsMergeFn?: PropsMergeFn<
       RootTag,
       AdditionalProps,
       RefType,
@@ -89,8 +89,8 @@ export const createComponentBuilderGetter: ComponentBuilderGetter = <
             })();
 
             const mergeFn =
-              builderPropsMergeFn ??
-              builderGetterPropsMergeFn ??
+              extenderPropsMergeFn ??
+              extenderGetterPropsMergeFn ??
               defaultPropsMergeFn;
 
             const mergedProps = mergeFn({

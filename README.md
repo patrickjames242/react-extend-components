@@ -19,20 +19,20 @@ $ npm install react-extend-components
 ```
 ## Basic Usage
 
-First define a `ComponentBuilderGroup` that you will import in all of your component files.
+First define a `ComponentExtenderGroup` that you will import in all of your component files.
 
 ```tsx
-// in ComponentBuilders.ts
-import { createComponentBuilderGroup } from 'react-extend-components';
+// in ComponentExtenders.ts
+import { createComponentExtenderGroup } from 'react-extend-components';
 
-export const ComponentBuilders = createComponentBuilderGroup();
+export const ComponentExtenders = createComponentExtenderGroup();
 ```
 Now you can start writing your components.
 
 ```tsx
-import { ComponentBuilders } from './ComponentBuilders';
+import { ComponentExtenders } from './ComponentExtenders';
 
-export const SubmitButton = ComponentBuilders.button(Button => {
+export const SubmitButton = ComponentExtenders.button(Button => {
    return <Button 
       className="SubmitButton" 
       style={{
@@ -165,18 +165,18 @@ The purpose of this package is to take care of all of this automatically, and al
 Here's how you would rewrite the above component using this package.
 
 ```tsx
-// in ComponentBuilders.ts
+// in ComponentExtenders.ts
 
-import { createComponentBuilderGroup } from 'react-extend-components';
+import { createComponentExtenderGroup } from 'react-extend-components';
 
-export const ComponentBuilders = createComponentBuilderGroup();
+export const ComponentExtenders = createComponentExtenderGroup();
 
 // in Form.tsx
 
-import { ComponentBuilders } from './ComponentBuilders';
+import { ComponentExtenders } from './ComponentExtenders';
 import { useRef } from 'react';
 
-export const SubmitButton = ComponentBuilders.button(Button => {
+export const SubmitButton = ComponentExtenders.button(Button => {
    const buttonRef = useRef<HTMLButtonElement>(null);
    return <Button 
       ref={buttonRef}
@@ -228,10 +228,10 @@ Also, the library automatically gives the users of the component access to the a
 You might be wondering how you would add custom props to your component. Here's how you would do this.
 
 ```tsx
-import { ComponentBuilders } from './ComponentBuilders';
+import { ComponentExtenders } from './ComponentExtenders';
 import { ComponentType } from 'react';
 
-export const SubmitButton = ComponentBuilders.button<{
+export const SubmitButton = ComponentExtenders.button<{
    buttonTitle: string;
    Icon?: ComponentType<{className?: string}>
 }>((Button, props) => {
@@ -268,9 +268,9 @@ Note that if any of your custom prop names clash with the base element's prop na
 By default, the `children` prop is excluded from the type information of the resulting component. This is because, usually, components would want to add their own children to the underlying element or have specific control over how values provided to `children` are dealt with.
 
 ```tsx
-import { ComponentBuilders } from './ComponentBuilders';
+import { ComponentExtenders } from './ComponentExtenders';
 
-const HeaderView = ComponentBuilders.header(Header => {
+const HeaderView = ComponentExtenders.header(Header => {
    return <Header>
       <h1>My Awesome Header</h1>
    </Header>
@@ -281,9 +281,9 @@ const HeaderView = ComponentBuilders.header(Header => {
 If you want to give users the ability to add a `children` prop, add it to your custom props type information.
 
 ```tsx
-import { ComponentBuilders } from './ComponentBuilders';
+import { ComponentExtenders } from './ComponentExtenders';
 
-const HeaderView = ComponentBuilders.header<{
+const HeaderView = ComponentExtenders.header<{
    children?: string
 }>((Header, props) => {
    const { children } = props.pluck('children');
@@ -302,9 +302,9 @@ For whatever reason, you might want to have access to all the props that were pa
 To do this, use the `props.peek` function.
 
 ```tsx
-import { ComponentBuilders } from './ComponentBuilders';
+import { ComponentExtenders } from './ComponentExtenders';
 
-const Link = ComponentBuilders.a((A, props) => {
+const Link = ComponentExtenders.a((A, props) => {
    const { href } = props.peek(); // The underlying anchor element will still receive all the passed props (including href), but you can still 'peek' at the value.
    return <A className="app-link">
       My AwesomeLink
@@ -319,9 +319,9 @@ When working with function components, React prevents you from treating a ref li
 You can pluck a ref as you would expect.
 
 ```tsx
-import { ComponentBuilders } from './ComponentBuilders';
+import { ComponentExtenders } from './ComponentExtenders';
 
-const ListItemView = ComponentBuilders.div((Div, props) => {
+const ListItemView = ComponentExtenders.div((Div, props) => {
    
    const { ref } = props.pluck('ref') // now the ref won't be passed to the underlying element
    return <Div className="list-item-view">
@@ -333,10 +333,10 @@ const ListItemView = ComponentBuilders.div((Div, props) => {
 Here's how you would implement a custom ref.
 
 ```tsx
-import { ComponentBuilders } from './ComponentBuilders';
+import { ComponentExtenders } from './ComponentExtenders';
 import { useImperativeHandle } from 'react';
 
-const DialogBox = ComponentBuilders.div<
+const DialogBox = ComponentExtenders.div<
    {}, // add custom prop types here
    { // add the type of the ref as the second generic parameter
       setOpened: (isOpen: boolean) => void; 
@@ -358,22 +358,22 @@ const DialogBox = ComponentBuilders.div<
 
 ## Custom Components
 
-By default, the `createComponentBuilderGroup` factory function gives you access to all the html elements listed in React's JSX.IntrinsicElements interface.
+By default, the `createComponentExtenderGroup` factory function gives you access to all the html elements listed in React's JSX.IntrinsicElements interface.
 
 You're able to use them with this convenient syntax.
 
 ```tsx
-// in ComponentBuilders.ts
+// in ComponentExtenders.ts
 
-import { createComponentBuilderGroup } from 'react-extend-components';
+import { createComponentExtenderGroup } from 'react-extend-components';
 
-export const ComponentBuilders = createComponentBuilderGroup();
+export const ComponentExtenders = createComponentExtenderGroup();
 
 // in MyComponent.tsx
 
-import { ComponentBuilders } from './ComponentBuilders';
+import { ComponentExtenders } from './ComponentExtenders';
 
-export const MyComponent = ComponentBuilders.div( // or section, or form, or button, or any other html tag
+export const MyComponent = ComponentExtenders.div( // or section, or form, or button, or any other html tag
    Div => {
       return <Div>{/* ... */}</Div>
    }
@@ -383,33 +383,33 @@ export const MyComponent = ComponentBuilders.div( // or section, or form, or but
 But you also have the ability to do the same with custom components that you've made yourself. The library makes this completely type-safe as well.
 
 ```tsx
-import { ComponentBuilders } from './ComponentBuilders';
+import { ComponentExtenders } from './ComponentExtenders';
 import { MainAppButton } from './MainAppButton';
 
-export const MyComponent = ComponentBuilders(MainAppButton)(Button => {
+export const MyComponent = ComponentExtenders(MainAppButton)(Button => {
    return <Button>{/* ... */}</Button>
 })
 ```
 
 Please note, however, that the types for all the props of the root element (`MainAppButton` in this case), are marked as optional by default. If you would like to require those props, add them to your [custom props](#customizing-props) generic parameter.
 
-You can also define custom components in an `additionalComponents` object when creating your component builder so that you can access them on the builder using the same dot syntax that you would use for html elements.
+You can also define custom components in an `additionalComponents` object when creating your component extender so that you can access them on the extender using the same dot syntax that you would use for html elements.
 
 ```tsx
-// in ComponentBuilders.ts
+// in ComponentExtenders.ts
 
 import { MainAppButton } from './MainAppButton';
-import { createComponentBuilderGroup } from 'react-extend-components';
+import { createComponentExtenderGroup } from 'react-extend-components';
 
-export const ComponentBuilders = createComponentBuilderGroup({
+export const ComponentExtenders = createComponentExtenderGroup({
    MainAppButton
 });
 
 // in MyComponent.tsx
 
-import { ComponentBuilders } from './ComponentBuilders';
+import { ComponentExtenders } from './ComponentExtenders';
 
-export const MyComponent = ComponentBuilders.MainAppButton(
+export const MyComponent = ComponentExtenders.MainAppButton(
    Button => {
       return <Button />
    }
@@ -423,9 +423,9 @@ When you pass the same prop to the resulting component as well as to the underly
 - **The `style` prop:** The style properties passed to the outermost component will override the properties passed to the inner element.
 
 ```tsx
-import { ComponentBuilders } from './ComponentBuilders';
+import { ComponentExtenders } from './ComponentExtenders';
 
-export const MyButton = ComponentBuilders.button(Button => {
+export const MyButton = ComponentExtenders.button(Button => {
    return <Button style={{
       backgroundColor: 'purple',
       color: 'white',
@@ -444,9 +444,9 @@ export const MyButton = ComponentBuilders.button(Button => {
 ```
 - **The `className` prop:** The className string passed to the outermost component is appended to the className string passed to the inner element.
 ```tsx
-import { ComponentBuilders } from './ComponentBuilders';
+import { ComponentExtenders } from './ComponentExtenders';
 
-export const MyButton = ComponentBuilders.button(Button => {
+export const MyButton = ComponentExtenders.button(Button => {
    return <Button className="My-Button">My Button</Button>
 });
 
@@ -460,9 +460,9 @@ export const MyButton = ComponentBuilders.button(Button => {
 - **Functions:** Functions are merged together by passing a new function to the prop that first calls the inner component function prop, then the outer one. The return value of the outer prop is the one that the function will return (if the outer prop is set).
 
 ```tsx
-import { ComponentBuilders } from './ComponentBuilders';
+import { ComponentExtenders } from './ComponentExtenders';
 
-export const MyButton = ComponentBuilders.button(Button => {
+export const MyButton = ComponentExtenders.button(Button => {
    return <Button 
       onClick={() => {
          // This function will be called first
@@ -483,9 +483,9 @@ export const MyButton = ComponentBuilders.button(Button => {
 Please note that in a situation where either the inner prop or outer prop is a function and the other one is a non-function (with the exception of null and undefined), the outer prop will always replace the inner one.
 
 ```tsx
-import { ComponentBuilders } from './ComponentBuilders';
+import { ComponentExtenders } from './ComponentExtenders';
 
-export const MyButton = ComponentBuilders.button(Button => {
+export const MyButton = ComponentExtenders.button(Button => {
    return <Button 
       onClick={() => {
          // this function will never be called because the corresponding outer prop is a string and it will override this value
@@ -503,9 +503,9 @@ export const MyButton = ComponentBuilders.button(Button => {
 - **The `children` prop:** The inner children prop will always override the outer prop if the inner prop is anything other than undefined.
 
 ```tsx
-import { ComponentBuilders } from './ComponentBuilders';
+import { ComponentExtenders } from './ComponentExtenders';
 
-export const MyButton = ComponentBuilders.button<{
+export const MyButton = ComponentExtenders.button<{
    children?: string
 }>(Button => {
    return <Button>
@@ -523,9 +523,9 @@ export const MyButton = ComponentBuilders.button<{
 If you would like to allow users to customize the children of the component, pluck the `children` prop.
 
 ```tsx
-import { ComponentBuilders } from './ComponentBuilders';
+import { ComponentExtenders } from './ComponentExtenders';
 
-export const MyButton = ComponentBuilders.button<{
+export const MyButton = ComponentExtenders.button<{
    children?: string
 }>((Button, props) => {
    const { children } = props.pluck('children');
@@ -543,9 +543,9 @@ export const MyButton = ComponentBuilders.button<{
 
 - **Any Other Prop:** For any other prop, the outer props will override the inner props.
 ```tsx
-import { ComponentBuilders } from './ComponentBuilders';
+import { ComponentExtenders } from './ComponentExtenders';
 
-export const MyButton = ComponentBuilders.button(Button => {
+export const MyButton = ComponentExtenders.button(Button => {
    return <Button 
       title="My Button" // this value will be ignored 
    >My Button</Button>
@@ -566,9 +566,9 @@ You are given the option to implement a custom merge function if the provided me
 Here's how you would implement it.
 
 ```tsx
-import { createComponentBuilderGroup } from 'react-extend-components';
+import { createComponentExtenderGroup } from 'react-extend-components';
 
-export const ComponentBuilders = createComponentBuilderGroup({
+export const ComponentExtenders = createComponentExtenderGroup({
    propsMergeFn: ({ 
       innerProps, 
       outerProps, 
@@ -592,9 +592,9 @@ Note that you will only receive props in the `outerProps` object that were not '
 You are provided with the `defaultMergeFn` in the merge function, which you may find useful if you'd just like to merge a specific prop but have the library handle the rest.
 
 ```tsx
-import { createComponentBuilderGroup } from 'react-extend-components';
+import { createComponentExtenderGroup } from 'react-extend-components';
 
-export const ComponentBuilders = createComponentBuilderGroup({
+export const ComponentExtenders = createComponentExtenderGroup({
    propsMergeFn: ({ 
       innerProps, 
       outerProps, 
@@ -613,9 +613,9 @@ export const ComponentBuilders = createComponentBuilderGroup({
 You can also specify a customized merge function at the individual component level.
 
 ```tsx
-import { ComponentBuilders } from './ComponentBuilders';
+import { ComponentExtenders } from './ComponentExtenders';
 
-const MyComponent = ComponentBuilders.div(Div => {
+const MyComponent = ComponentExtenders.div(Div => {
    return <Div></Div>
 }, ({
    innerProps,
@@ -627,4 +627,4 @@ const MyComponent = ComponentBuilders.div(Div => {
    return 
 });
 ```
-This will, of course, override the merge function at the Component Builder level.
+This will, of course, override the merge function at the Component Extender level.

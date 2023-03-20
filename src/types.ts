@@ -6,7 +6,7 @@ import {
   ReactNode,
   Ref,
 } from 'react';
-import type { createComponentBuilderGetter } from './createComponentBuilderGetter';
+import type { extendComponent } from './extendComponent';
 import { allHtmlTags } from './utils/allHtmlTags';
 
 export type ReactTag = keyof JSX.IntrinsicElements | JSXElementConstructor<any>;
@@ -112,12 +112,12 @@ export type ResultComponentProps<
 > &
   (RefType extends 'default' ? {} : { ref?: Ref<RefType> });
 
-export type ComponentBuilderGetter = <RootTag extends ReactTag>(
+export type ComponentExtenderGetter = <RootTag extends ReactTag>(
   rootTag: RootTag,
   propsMergeFn?: PropsMergeFn<RootTag>
-) => ComponentBuilder<RootTag>;
+) => ComponentExtender<RootTag>;
 
-export type ComponentBuilder<RootTag extends ReactTag> = <
+export type ComponentExtender<RootTag extends ReactTag> = <
   AdditionalProps extends object,
   RefType extends RefTypeConstraint = 'default',
   RootPropsToInclude extends RootPropsToIncludeConstraint<RootTag> = keyof ReactTagProps<RootTag>
@@ -138,14 +138,14 @@ export type AdditionalComponentsConstraint = Record<
   JSXElementConstructor<any>
 >;
 
-export type ComponentBuilderGroup<
+export type ComponentExtenderGroup<
   AdditionalComponents extends AdditionalComponentsConstraint
-> = typeof createComponentBuilderGetter & {
-  Fragment: ComponentBuilder<typeof Fragment>;
+> = typeof extendComponent & {
+  Fragment: ComponentExtender<typeof Fragment>;
 } & {
-  [Tag in (typeof allHtmlTags)[number]]: ComponentBuilder<Tag>;
+  [Tag in (typeof allHtmlTags)[number]]: ComponentExtender<Tag>;
 } & {
-  [ComponentKey in keyof AdditionalComponents]: ComponentBuilder<
+  [ComponentKey in keyof AdditionalComponents]: ComponentExtender<
     AdditionalComponents[ComponentKey]
   >;
 };
