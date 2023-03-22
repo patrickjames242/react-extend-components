@@ -44,12 +44,19 @@ export type PropsMergeFn<
   defaultMergeFn: DefaultPropsMergeFn;
 }) => ReactTagProps<RootTag>;
 
-export interface Props<
+export interface PropHelpers<
   RootTag extends ReactTag,
   AdditionalProps extends object,
   RefType extends RefTypeConstraint,
   RootPropsToInclude extends RootPropsToIncludeConstraint<RootTag>
 > {
+  detectPlucked: () => ResultComponentProps<
+    RootTag,
+    AdditionalProps,
+    RefType,
+    RootPropsToInclude
+  >;
+
   pluck: <
     Attributes extends keyof ResultComponentProps<
       RootTag,
@@ -90,7 +97,18 @@ export type RenderFn<
   RootPropsToInclude extends RootPropsToIncludeConstraint<RootTag>
 > = (
   RootComponent: RootComponent<RootTag>,
-  props: Props<RootTag, AdditionalProps, RefType, RootPropsToInclude>
+  props: ResultComponentProps<
+    RootTag,
+    AdditionalProps,
+    RefType,
+    RootPropsToInclude
+  >,
+  propHelpers: PropHelpers<
+    RootTag,
+    AdditionalProps,
+    RefType,
+    RootPropsToInclude
+  >
 ) => ReactNode;
 
 export type RootComponent<RootTag extends ReactTag> = (

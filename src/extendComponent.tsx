@@ -7,7 +7,7 @@ import {
 import { defaultPropsMergeFn } from './defaultPropsMergeFn';
 import {
   ComponentExtenderGetter,
-  Props,
+  PropHelpers,
   PropsMergeFn,
   ReactTag,
   ReactTagProps,
@@ -107,7 +107,7 @@ export const extendComponent: ComponentExtenderGetter = <
         []
       );
 
-      const pluck: Props<
+      const pluck: PropHelpers<
         RootTag,
         AdditionalProps,
         RefType,
@@ -124,20 +124,34 @@ export const extendComponent: ComponentExtenderGetter = <
         }, {} as any);
       };
 
-      const pluckAll: Props<
+      const detectPlucked: PropHelpers<
         RootTag,
         AdditionalProps,
         RefType,
         RootPropsToInclude
-      >['pluckAll'] = () => {
-        const props = { ...outerProps };
-        delete props['ref']; // because react annoyingly adds a ref getter and setter to props to remind us not to try to access it there
-        if (outerRef) props.ref = outerRef;
-        pluckAllProps.pluckAllProps = true;
-        return props;
+      >['detectPlucked'] = () => {
+        const result: any = {};
+
+        for (const key in outerProps) {
+          Object.defineProperty(result, key, {
+            get: () => {
+              pluckedProps.add(key);
+              return (outerProps as any)[key];
+            },
+          });
+        }
+
+        Object.defineProperty(result, 'ref', {
+          get: () => {
+            pluckedProps.add('ref');
+            return outerRef;
+          },
+        });
+
+        return result;
       };
 
-      const peek: Props<
+      const peek: PropHelpers<
         RootTag,
         AdditionalProps,
         RefType,
@@ -149,12 +163,24 @@ export const extendComponent: ComponentExtenderGetter = <
         return props;
       };
 
+      const pluckAll: PropHelpers<
+        RootTag,
+        AdditionalProps,
+        RefType,
+        RootPropsToInclude
+      >['pluckAll'] = () => {
+        const props = peek();
+        pluckAllProps.pluckAllProps = true;
+        return props;
+      };
+
       return (
         <>
-          {renderFn(RootComponentFn, {
+          {renderFn(RootComponentFn, detectPlucked(), {
             pluckAll,
             pluck,
             peek,
+            detectPlucked,
           })}
         </>
       );

@@ -7,7 +7,7 @@ export type {
   ComponentExtenderGetter,
   ComponentExtenderGroup,
   DefaultPropsMergeFn,
-  Props as ComponentExtenderRenderProps,
+  PropHelpers as ComponentExtenderRenderProps,
   PropsMergeFn,
   ReactTag,
   ReactTagProps,
