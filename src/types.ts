@@ -11,8 +11,11 @@ import type { allHtmlTags } from './utils/allHtmlTags';
 export type ExtendableComponentType =
   | keyof JSX.IntrinsicElements
   | JSXElementConstructor<any>;
-export type ExtendableComponentProps<Tag extends ExtendableComponentType> =
-  Tag extends ElementType ? React.ComponentPropsWithRef<Tag> : never;
+export type ExtendableComponentProps<
+  ComponentType extends ExtendableComponentType
+> = ComponentType extends ElementType
+  ? React.ComponentPropsWithRef<ComponentType>
+  : never;
 
 export type FCReturnType = JSX.Element | null;
 export type RefTypeConstraint = any | 'default';
