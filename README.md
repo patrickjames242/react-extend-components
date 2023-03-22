@@ -234,12 +234,7 @@ import { ComponentType } from 'react';
 export const SubmitButton = ComponentExtenders.button<{
    buttonTitle: string;
    Icon?: ComponentType<{className?: string}>
-}>((Button, props) => {
-   const { buttonTitle, Icon } = props.pluck(
-      // completely type-safe, you can only specify known properties
-      'buttonTitle', 
-      'Icon'
-   ); 
+}>((Button, { buttonTitle, Icon }) => {
    return <Button className="submit-button">
       { buttonTitle ?? 'Submit' }
       <Icon className="submit-button-icon">
@@ -255,11 +250,9 @@ export const SubmitButton = ComponentExtenders.button<{
 />
 ```
 
-Here we're 'plucking' certain props that were provided to the outermost component for use within our component. Whatever props you pass to the `props.pluck` function will be hidden from the underlying element. This will prevent pesky errors from React as well as prevent unexpected behavior if your prop names conflict with html attribute names.
+Here we're destructuring certain props that were provided to the outermost component for use within our component. Whatever props you destructure / access in the props argument will be hidden from the underlying element. This will prevent pesky errors from React as well as prevent unexpected behavior if your prop names conflict with HTML attribute names. (The package uses getters within the props object to figure out which props you're using within your component.)
 
-`props.pluck` must be called on every render, if on every render you'd want to hide the props from the underlying element.
-
-Additionally, `props.pluck` doesn't restrict you to properties you've defined yourself. You can pluck any prop the user passes to the outermost component, even refs!
+Additionally, the `props` argument doesn't restrict you to properties you've defined yourself. You can access any prop the user passes to the outermost component, even refs!
 
 Note that if any of your custom prop names clash with the base element's prop names (`button` in the above case), then the types of your custom props will override that of the base element.
 
@@ -285,8 +278,7 @@ import { ComponentExtenders } from './ComponentExtenders';
 
 const HeaderView = ComponentExtenders.header<{
    children?: string
-}>((Header, props) => {
-   const { children } = props.pluck('children');
+}>((Header, { children }) => {
    return <Header>
       <h1>{children ?? 'My Awesome Header'}</h1>
    </Header>
@@ -299,13 +291,13 @@ const HeaderView = ComponentExtenders.header<{
 
 For whatever reason, you might want to have access to all the props that were passed to the component without preventing those props from being passed to the underlying element.
 
-To do this, use the `props.peek` function.
+To do this, use the `helpers.peek` function.
 
 ```tsx
 import { ComponentExtenders } from './ComponentExtenders';
 
-const Link = ComponentExtenders.a((A, props) => {
-   const { href } = props.peek(); // The underlying anchor element will still receive all the passed props (including href), but you can still 'peek' at the value.
+const Link = ComponentExtenders.a((A, _, helpers) => {
+   const { href } = helpers.peek(); // The underlying anchor element will still receive all the passed props (including href), but you can still 'peek' at the value.
    return <A className="app-link">
       My AwesomeLink
    </A>
@@ -316,14 +308,15 @@ const Link = ComponentExtenders.a((A, props) => {
 
 When working with function components, React prevents you from treating a ref like you would a regular prop. You'd have to use forwardRef to access a ref that a user has passed to the component. This package attempts to reverse this and allow you to use a ref just like any other prop.
 
-You can pluck a ref as you would expect.
+You can destructure a ref as you would expect.
 
 ```tsx
 import { ComponentExtenders } from './ComponentExtenders';
 
-const ListItemView = ComponentExtenders.div((Div, props) => {
-   
-   const { ref } = props.pluck('ref') // now the ref won't be passed to the underlying element
+const ListItemView = ComponentExtenders.div((
+   Div, 
+   { ref } // now the ref won't be passed to the underlying element
+) => {
    return <Div className="list-item-view">
       {/* ... */}
    </Div>
@@ -341,9 +334,10 @@ const DialogBox = ComponentExtenders.div<
    { // add the type of the ref as the second generic parameter
       setOpened: (isOpen: boolean) => void; 
    } 
->((Div, props) => {
-   const { ref } = props.pluck('ref'); // pluck the ref so it won't be passed to the underlying element
-
+>((
+   Div, 
+   { ref } // destructure the ref so it won't be passed to the underlying element
+) => {
    useImperativeHandle(ref, () => ({
       setOpened: (isOpened) => {
          // implementation...
@@ -527,8 +521,7 @@ import { ComponentExtenders } from './ComponentExtenders';
 
 export const MyButton = ComponentExtenders.button<{
    children?: string
-}>((Button, props) => {
-   const { children } = props.pluck('children');
+}>((Button, { children }) => {
    return <Button>
       { children ?? 'My Button'}
    </Button>
