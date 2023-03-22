@@ -6,123 +6,127 @@ import {
   ReactNode,
   Ref,
 } from 'react';
-import type { extendComponent } from './extendComponent';
-import { allHtmlTags } from './utils/allHtmlTags';
+import type { allHtmlTags } from './utils/allHtmlTags';
 
-export type ReactTag = keyof JSX.IntrinsicElements | JSXElementConstructor<any>;
-export type ReactTagProps<Tag extends ReactTag> = Tag extends ElementType
-  ? React.ComponentPropsWithRef<Tag>
-  : never;
+export type ExtendableComponentType =
+  | keyof JSX.IntrinsicElements
+  | JSXElementConstructor<any>;
+export type ExtendableComponentProps<Tag extends ExtendableComponentType> =
+  Tag extends ElementType ? React.ComponentPropsWithRef<Tag> : never;
 
 export type FCReturnType = JSX.Element | null;
 export type RefTypeConstraint = any | 'default';
 
-export type RootPropsToIncludeConstraint<RootTag extends ReactTag> =
-  | keyof Partial<ReactTagProps<RootTag>>
+export type BaseComponentPropsToIncludeConstraint<
+  BaseComponent extends ExtendableComponentType
+> =
+  | keyof Partial<ExtendableComponentProps<BaseComponent>>
   | string
   | number
   | symbol;
 
 export type DefaultPropsMergeFn = (info: {
   outerProps: ResultComponentProps<any, any, any, any>;
-  innerProps: ReactTagProps<any>;
-}) => ReactTagProps<any>;
+  innerProps: ExtendableComponentProps<any>;
+}) => ExtendableComponentProps<any>;
 
 export type PropsMergeFn<
-  RootTag extends ReactTag = any,
+  BaseComponent extends ExtendableComponentType = any,
   AdditionalProps extends object = any,
   RefType extends RefTypeConstraint = any,
-  RootPropsToInclude extends RootPropsToIncludeConstraint<RootTag> = any
+  BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<BaseComponent> = any
 > = (info: {
   outerProps: ResultComponentProps<
-    RootTag,
+    BaseComponent,
     AdditionalProps,
     RefType,
-    RootPropsToInclude
+    BaseComponentPropsToInclude
   >;
-  innerProps: ReactTagProps<RootTag>;
+  innerProps: ExtendableComponentProps<BaseComponent>;
   defaultMergeFn: DefaultPropsMergeFn;
-}) => ReactTagProps<RootTag>;
+}) => ExtendableComponentProps<BaseComponent>;
 
 export interface PropHelpers<
-  RootTag extends ReactTag,
+  BaseComponent extends ExtendableComponentType,
   AdditionalProps extends object,
   RefType extends RefTypeConstraint,
-  RootPropsToInclude extends RootPropsToIncludeConstraint<RootTag>
+  BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<BaseComponent>
 > {
   detectPlucked: () => ResultComponentProps<
-    RootTag,
+    BaseComponent,
     AdditionalProps,
     RefType,
-    RootPropsToInclude
+    BaseComponentPropsToInclude
   >;
 
   pluck: <
     Attributes extends keyof ResultComponentProps<
-      RootTag,
+      BaseComponent,
       AdditionalProps,
       RefType,
-      RootPropsToInclude
+      BaseComponentPropsToInclude
     > = never
   >(
     ...attributes: Attributes[]
   ) => {
     [Key in Attributes]: ResultComponentProps<
-      RootTag,
+      BaseComponent,
       AdditionalProps,
       RefType,
-      RootPropsToInclude
+      BaseComponentPropsToInclude
     >[Key];
   };
 
   pluckAll: () => ResultComponentProps<
-    RootTag,
+    BaseComponent,
     AdditionalProps,
     RefType,
-    RootPropsToInclude
+    BaseComponentPropsToInclude
   >;
 
   peek: () => ResultComponentProps<
-    RootTag,
+    BaseComponent,
     AdditionalProps,
     RefType,
-    RootPropsToInclude
+    BaseComponentPropsToInclude
   >;
 }
 
 export type RenderFn<
-  RootTag extends ReactTag,
+  BaseComponent extends ExtendableComponentType,
   AdditionalProps extends object,
   RefType extends RefTypeConstraint,
-  RootPropsToInclude extends RootPropsToIncludeConstraint<RootTag>
+  BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<BaseComponent>
 > = (
-  RootComponent: RootComponent<RootTag>,
+  RootComponent: RootComponent<BaseComponent>,
   props: ResultComponentProps<
-    RootTag,
+    BaseComponent,
     AdditionalProps,
     RefType,
-    RootPropsToInclude
+    BaseComponentPropsToInclude
   >,
   propHelpers: PropHelpers<
-    RootTag,
+    BaseComponent,
     AdditionalProps,
     RefType,
-    RootPropsToInclude
+    BaseComponentPropsToInclude
   >
 ) => ReactNode;
 
-export type RootComponent<RootTag extends ReactTag> = (
-  props: ReactTagProps<RootTag>
+export type RootComponent<BaseComponent extends ExtendableComponentType> = (
+  props: ExtendableComponentProps<BaseComponent>
 ) => FCReturnType;
 
 export type ResultComponentProps<
-  RootTag extends ReactTag,
+  BaseComponent extends ExtendableComponentType,
   AdditionalProps extends object,
   RefType extends RefTypeConstraint,
-  RootPropsToInclude extends RootPropsToIncludeConstraint<ReactTag>
+  BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<ExtendableComponentType>
 > = Omit<
   Omit<
-    Partial<Pick<ReactTagProps<RootTag>, RootPropsToInclude>>,
+    Partial<
+      Pick<ExtendableComponentProps<BaseComponent>, BaseComponentPropsToInclude>
+    >,
     'children' | keyof AdditionalProps
   > &
     AdditionalProps,
@@ -130,25 +134,37 @@ export type ResultComponentProps<
 > &
   (RefType extends 'default' ? {} : { ref?: Ref<RefType> });
 
-export type ComponentExtenderGetter = <RootTag extends ReactTag>(
-  rootTag: RootTag,
-  propsMergeFn?: PropsMergeFn<RootTag>
-) => ComponentExtender<RootTag>;
+export type ComponentExtenderGetter = <
+  BaseComponent extends ExtendableComponentType
+>(
+  baseComponent: BaseComponent,
+  propsMergeFn?: PropsMergeFn<BaseComponent>
+) => ComponentExtender<BaseComponent>;
 
-export type ComponentExtender<RootTag extends ReactTag> = <
+export type ComponentExtender<BaseComponent extends ExtendableComponentType> = <
   AdditionalProps extends object,
   RefType extends RefTypeConstraint = 'default',
-  RootPropsToInclude extends RootPropsToIncludeConstraint<RootTag> = keyof ReactTagProps<RootTag>
+  BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<BaseComponent> = keyof ExtendableComponentProps<BaseComponent>
 >(
-  renderFn: RenderFn<RootTag, AdditionalProps, RefType, RootPropsToInclude>,
-  propsMergeFn?: PropsMergeFn<
-    RootTag,
+  renderFn: RenderFn<
+    BaseComponent,
     AdditionalProps,
     RefType,
-    RootPropsToInclude
+    BaseComponentPropsToInclude
+  >,
+  propsMergeFn?: PropsMergeFn<
+    BaseComponent,
+    AdditionalProps,
+    RefType,
+    BaseComponentPropsToInclude
   >
 ) => FC<
-  ResultComponentProps<RootTag, AdditionalProps, RefType, RootPropsToInclude>
+  ResultComponentProps<
+    BaseComponent,
+    AdditionalProps,
+    RefType,
+    BaseComponentPropsToInclude
+  >
 >;
 
 export type AdditionalComponentsConstraint = Record<
@@ -158,7 +174,7 @@ export type AdditionalComponentsConstraint = Record<
 
 export type ComponentExtenderGroup<
   AdditionalComponents extends AdditionalComponentsConstraint
-> = typeof extendComponent & {
+> = ComponentExtenderGetter & {
   Fragment: ComponentExtender<typeof Fragment>;
 } & {
   [Tag in (typeof allHtmlTags)[number]]: ComponentExtender<Tag>;

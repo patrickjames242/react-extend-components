@@ -6,16 +6,16 @@ import {
 } from 'react';
 import { defaultPropsMergeFn } from './defaultPropsMergeFn';
 import {
+  BaseComponentPropsToIncludeConstraint,
   ComponentExtenderGetter,
+  ExtendableComponentProps,
+  ExtendableComponentType,
   PropHelpers,
   PropsMergeFn,
-  ReactTag,
-  ReactTagProps,
   RefTypeConstraint,
   RenderFn,
   ResultComponentProps,
   RootComponent,
-  RootPropsToIncludeConstraint,
 } from './types';
 import {
   useConsumeObservableValue,
@@ -23,31 +23,38 @@ import {
 } from './utils/ValueObservable';
 
 export const extendComponent: ComponentExtenderGetter = <
-  RootTag extends ReactTag
+  BaseComponent extends ExtendableComponentType
 >(
-  rootTag: RootTag,
-  extenderGetterPropsMergeFn?: PropsMergeFn<RootTag>
+  baseComponent: BaseComponent,
+  propsMergeFn?: PropsMergeFn<BaseComponent>
 ) => {
+  const extenderGetterPropsMergeFn = propsMergeFn;
   return <
     AdditionalProps extends object = {},
     RefType extends RefTypeConstraint = 'default',
-    RootPropsToInclude extends RootPropsToIncludeConstraint<RootTag> = keyof ReactTagProps<RootTag>
+    BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<BaseComponent> = keyof ExtendableComponentProps<BaseComponent>
   >(
-    renderFn: RenderFn<RootTag, AdditionalProps, RefType, RootPropsToInclude>,
-    extenderPropsMergeFn?: PropsMergeFn<
-      RootTag,
+    renderFn: RenderFn<
+      BaseComponent,
       AdditionalProps,
       RefType,
-      RootPropsToInclude
+      BaseComponentPropsToInclude
+    >,
+    propsMergeFn?: PropsMergeFn<
+      BaseComponent,
+      AdditionalProps,
+      RefType,
+      BaseComponentPropsToInclude
     >
   ) => {
+    const extenderPropsMergeFn = propsMergeFn;
     const Fn: ForwardRefRenderFunction<
-      ReactTagProps<ReactTag>['ref'],
+      ExtendableComponentProps<ExtendableComponentType>['ref'],
       ResultComponentProps<
-        RootTag,
+        BaseComponent,
         AdditionalProps,
         RefType,
-        RootPropsToInclude
+        BaseComponentPropsToInclude
       >
     > = (outerProps, outerRef) => {
       const pluckedProps = new Set<string | number | symbol>();
@@ -59,11 +66,11 @@ export const extendComponent: ComponentExtenderGetter = <
         pluckAllProps,
       });
 
-      const RootComponentFn: RootComponent<RootTag> = useMemo(
+      const RootComponentFn: RootComponent<BaseComponent> = useMemo(
         () => {
           const Fn: ForwardRefRenderFunction<
-            ReactTagProps<RootTag>['ref'],
-            ReactTagProps<RootTag>
+            ExtendableComponentProps<BaseComponent>['ref'],
+            ExtendableComponentProps<BaseComponent>
           > = (innerProps, innerRef) => {
             const { outerProps, pluckedProps, pluckAllProps } =
               useConsumeObservableValue(observableValues);
@@ -99,7 +106,7 @@ export const extendComponent: ComponentExtenderGetter = <
               defaultMergeFn: defaultPropsMergeFn,
             });
 
-            return createElement(rootTag, mergedProps);
+            return createElement(baseComponent, mergedProps);
           };
           return forwardRef(Fn) as any;
         },
@@ -108,10 +115,10 @@ export const extendComponent: ComponentExtenderGetter = <
       );
 
       const pluck: PropHelpers<
-        RootTag,
+        BaseComponent,
         AdditionalProps,
         RefType,
-        RootPropsToInclude
+        BaseComponentPropsToInclude
       >['pluck'] = (...attributes) => {
         return attributes.reduce((acc, attribute) => {
           pluckedProps.add(attribute);
@@ -125,10 +132,10 @@ export const extendComponent: ComponentExtenderGetter = <
       };
 
       const detectPlucked: PropHelpers<
-        RootTag,
+        BaseComponent,
         AdditionalProps,
         RefType,
-        RootPropsToInclude
+        BaseComponentPropsToInclude
       >['detectPlucked'] = () => {
         const result: any = {};
 
@@ -152,10 +159,10 @@ export const extendComponent: ComponentExtenderGetter = <
       };
 
       const peek: PropHelpers<
-        RootTag,
+        BaseComponent,
         AdditionalProps,
         RefType,
-        RootPropsToInclude
+        BaseComponentPropsToInclude
       >['peek'] = () => {
         const props = { ...outerProps };
         delete props['ref']; // because react annoyingly adds a ref getter and setter to props to remind us not to try to access it there
@@ -164,10 +171,10 @@ export const extendComponent: ComponentExtenderGetter = <
       };
 
       const pluckAll: PropHelpers<
-        RootTag,
+        BaseComponent,
         AdditionalProps,
         RefType,
-        RootPropsToInclude
+        BaseComponentPropsToInclude
       >['pluckAll'] = () => {
         const props = peek();
         pluckAllProps.pluckAllProps = true;
