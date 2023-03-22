@@ -235,6 +235,7 @@ export const SubmitButton = ComponentExtenders.button<{
    buttonTitle: string;
    Icon?: ComponentType<{className?: string}>
 }>((Button, { buttonTitle, Icon }) => {
+   
    return <Button className="submit-button">
       { buttonTitle ?? 'Submit' }
       <Icon className="submit-button-icon">
@@ -514,7 +515,7 @@ export const MyButton = ComponentExtenders.button<{
 // the resulting children value will be: "My Button"
 ```
 
-If you would like to allow users to customize the children of the component, pluck the `children` prop.
+If you would like to allow users to customize the children of the component, destructure the `children` prop and incorporate it into the component.
 
 ```tsx
 import { ComponentExtenders } from './ComponentExtenders';
@@ -548,7 +549,7 @@ export const MyButton = ComponentExtenders.button(Button => {
    title="My Favorite Button" // the outer prop takes precedence
 />
 
-// the resulting button title will be "My Button"
+// the resulting button title will be "My Favorite Button"
 
 ```
 
