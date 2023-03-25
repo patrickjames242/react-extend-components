@@ -176,9 +176,8 @@ export const extendComponent: ComponentExtenderGetter = <
         RefType,
         BaseComponentPropsToInclude
       >['pluckAll'] = () => {
-        const props = peek();
         pluckAllProps.pluckAllProps = true;
-        return props;
+        return peek();
       };
 
       return (

@@ -1,10 +1,6 @@
-import { Fragment } from 'react';
+import { Fragment, JSXElementConstructor } from 'react';
 import { extendComponent } from './extendComponent';
-import {
-  AdditionalComponentsConstraint,
-  ComponentExtenderGroup,
-  PropsMergeFn,
-} from './types';
+import { ComponentExtenderGroup, PropsMergeFn } from './types';
 import { allHtmlTags } from './utils/allHtmlTags';
 
 export type BaseCreateComponentExtenderGroupProps = {
@@ -12,7 +8,7 @@ export type BaseCreateComponentExtenderGroupProps = {
 };
 
 export function createComponentExtenderGroup<
-  AdditionalComponents extends AdditionalComponentsConstraint
+  AdditionalComponents extends ComponentExtenderGroup.AdditionalComponentsConstraint
 >(
   options: {
     additionalComponents: AdditionalComponents;
@@ -35,10 +31,39 @@ export function createComponentExtenderGroup(
     (result as any)[tag] = extendComponent(tag, propsMergeFn);
   }
   for (const key in additionalComponents) {
+    const { component, additionalComponentPropsMergeFn } = (() => {
+      if ('propsMergeFn' in additionalComponents[key]) {
+        return {
+          component: additionalComponents[key].component,
+          additionalComponentPropsMergeFn:
+            additionalComponents[key].propsMergeFn,
+        };
+      } else
+        return {
+          component: additionalComponents[key],
+          additionalComponentPropsMergeFn: propsMergeFn,
+        };
+    })();
     (result as any)[key] = extendComponent(
-      additionalComponents[key],
-      propsMergeFn
+      component,
+      additionalComponentPropsMergeFn
     );
   }
   return result;
+}
+
+export function additionalComponent<
+  Component extends JSXElementConstructor<any>
+>(
+  component: Component,
+  propsMergeFn?: PropsMergeFn<Component, any>
+): ComponentExtenderGroup.AdditionalComponent<Component> {
+  if (propsMergeFn) {
+    return {
+      propsMergeFn,
+      component,
+    };
+  } else {
+    return component;
+  }
 }

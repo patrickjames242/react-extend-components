@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import {
   ElementType,
   FC,
@@ -170,19 +171,33 @@ export type ComponentExtender<BaseComponent extends ExtendableComponentType> = <
   >
 >;
 
-export type AdditionalComponentsConstraint = Record<
-  string,
-  JSXElementConstructor<any>
->;
-
 export type ComponentExtenderGroup<
-  AdditionalComponents extends AdditionalComponentsConstraint
+  AdditionalComponents extends ComponentExtenderGroup.AdditionalComponentsConstraint
 > = ComponentExtenderGetter & {
   Fragment: ComponentExtender<typeof Fragment>;
 } & {
   [Tag in (typeof allHtmlTags)[number]]: ComponentExtender<Tag>;
 } & {
   [ComponentKey in keyof AdditionalComponents]: ComponentExtender<
-    AdditionalComponents[ComponentKey]
+    AdditionalComponents[ComponentKey] extends ComponentExtenderGroup.AdditionalComponent<
+      infer T
+    >
+      ? T
+      : never
   >;
 };
+
+export namespace ComponentExtenderGroup {
+  export type AdditionalComponent<
+    Component extends JSXElementConstructor<any>
+  > =
+    | Component
+    | {
+        propsMergeFn: PropsMergeFn<Component, any>;
+        component: Component;
+      };
+  export type AdditionalComponentsConstraint = Record<
+    string,
+    AdditionalComponent<JSXElementConstructor<any>>
+  >;
+}

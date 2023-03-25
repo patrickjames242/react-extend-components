@@ -288,6 +288,38 @@ const HeaderView = ComponentExtenders.header<{
 <HeaderView>Custom Text</HeaderView> // 👍🏼 good to go
 ```
 
+### Overriding Base Component prop types
+
+When you extend a base element / component, the resulting component 'inherits' all the prop types from the base component automatically. So outsiders can override any of the props of the base component if they wanted to (only for [those props](#merging-props--refs) that this package doesn't merge by default). In doing this, they could accidentally change critical functionality within your component. For example: 
+
+```tsx
+import { ComponentExtenders } from './ComponentExtenders';
+
+const FileInput = ComponentExtenders.input((Input) => {
+   return <Input type="file" />
+});
+
+<FileInput type="text" /> // this "type" prop will override the one defined within the component, changing the input from a file field to a text field.
+```
+
+To prevent this, you may want to alter the props that are made available from the base component to the resulting component. Here's how you can do this.
+
+```tsx
+import { ComponentExtenders } from './ComponentExtenders';
+import { ComponentProps } from 'react';
+
+const FileInput = ComponentExtender.input<
+  {},
+  'default', // Tells the function to use the default method of figuring out the type of the ref. This is the default value if you don't set it. We're only setting it here because we need to set the third generic parameter.
+  keyof Omit<ComponentProps<'input'>, 'type'> // here we can specify a list of keys to include from the Base Component. Only keys specified in this union are included from the base component. (Only known keys are included)
+>((Input) => {
+  return <Input type="file" />;
+});
+
+<FileInput type="text" /> // TypeScript error! This component doesn't expose a "type" prop type!
+```
+
+
 ## Peeking
 
 For whatever reason, you might want to have access to all the props that were passed to the component without preventing those props from being passed to the underlying element.
@@ -450,7 +482,7 @@ export const MyButton = ComponentExtenders.button(Button => {
 // the resulting className will look like this: 
 // "My-Button some-other-class"
 ```
-- **Refs:** The `ref` passed to the outermost component is merged with the `ref` passed to the inner element using the `mergeRefs` function that this library exports. This function works by returning a `RefCallback` that sets the ref value of all the refs when it is called by React.
+- **Refs:** The `ref` passed to the outermost component is merged with the `ref` passed to the inner element using the `mergeRefs` function that this library exports. This function works by returning a `RefCallback` that sets the ref value of all the refs when it is called by React. (There is some debate that this is an inferior method of merging refs because it results in callback refs being called on every render; however, there are issues with other implementations. Check out [this Github issue](https://github.com/gregberge/react-merge-refs/issues/5) for an in-depth discussion.)
 
 - **Functions:** Functions are merged together by passing a new function to the prop that first calls the inner component function prop, then the outer one. The return value of the outer prop is the one that the function will return (if the outer prop is set).
 
@@ -461,7 +493,7 @@ export const MyButton = ComponentExtenders.button(Button => {
    return <Button 
       onClick={() => {
          // This function will be called first
-         // It's return value is ignored if there is an outer function set. 
+         // It's return value is ignored if there is an outer function is set. 
          // If not, this return value is returned from the resulting callback
       }}
    >My Button</Button>
@@ -622,3 +654,6 @@ const MyComponent = ComponentExtenders.div(Div => {
 });
 ```
 This will, of course, override the merge function at the Component Extender level.
+
+
+
