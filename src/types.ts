@@ -109,7 +109,7 @@ export type RenderFn<
     RefType,
     BaseComponentPropsToInclude
   >,
-  propHelpers: PropHelpers<
+  helpers: PropHelpers<
     BaseComponent,
     AdditionalProps,
     RefType,
