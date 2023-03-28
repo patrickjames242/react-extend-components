@@ -1,5 +1,8 @@
 import { create } from 'react-test-renderer';
+import { defaultPropsMergeFn } from './defaultPropsMergeFn';
 import { extendComponent } from './extendComponent';
+import { MergeFunctionProvider } from './MergeFunctionProvider';
+import { PropsMergeFnInfo } from './types';
 
 test('passes props to underlying element', () => {
   const TestComponent = extendComponent('div')((Div) => {
@@ -136,27 +139,6 @@ test('when using pluckAll, no props are passed to the underlying element', () =>
   expect(getProps()).toEqual({});
 });
 
-test('refs are passed to the underlying element by default', () => {
-  // const TestComponent = createComponentBuilderGetter('div')((Div) => {
-  //   return <Div />;
-  // });
-  // const ref1 = jest.fn();
-  // const component = create(<TestComponent ref={ref1} />);
-  // const getProps = (): any => component.root.findByType('div').props;
-  // expect(getProps()).toEqual({ ref: expect.any(Function) });
-});
-
-test('pluck function returns refs and hides them from the underlying element', () => {
-  // const receivePluckedProps = jest.fn();
-  // const TestComponent = createComponentBuilderGetter('div')((Div, props) => {
-  //   receivePluckedProps(props.pluck('ref'));
-  //   return <Div />;
-  // });
-  // const component = create(<TestComponent />);
-  // const getProps = (): any => component.root.findByType('div').props;
-  // expect(getProps()).toEqual({ ref: expect.any(Function) });
-});
-
 test('Peek returns all props, including those that are plucked', () => {
   let propsToPluck: string[] = [];
   const receivePeekedProps = jest.fn();
@@ -227,4 +209,138 @@ test('peeked props are always passed to the underlying element', () => {
     className: 'patrick123',
     id: '7',
   });
+});
+
+describe('The result of the props merge function is passed to the underlying element', () => {
+  test('extender args', () => {
+    let propsMergeFnResult: object = {};
+
+    const TestComponent = extendComponent('div')(
+      (Div) => {
+        return <Div />;
+      },
+      () => propsMergeFnResult
+    );
+
+    propsMergeFnResult = { tabIndex: -1 };
+    const component = create(<TestComponent style={{ color: 'red' }} />);
+    const getProps = (): any => component.root.findByType('div').props;
+    expect(getProps()).toEqual({ tabIndex: -1 });
+
+    propsMergeFnResult = { patrick: 'hanna' };
+    component.update(<TestComponent style={{ color: 'red' }} hidden />);
+    expect(getProps()).toEqual({ patrick: 'hanna' });
+  });
+
+  test('extender getter args', () => {
+    let propsMergeFnResult: object = {};
+
+    const TestComponent = extendComponent(
+      'div',
+      () => propsMergeFnResult
+    )((Div) => {
+      return <Div />;
+    });
+
+    propsMergeFnResult = { tabIndex: -1 };
+    const component = create(<TestComponent style={{ color: 'red' }} />);
+    const getProps = (): any => component.root.findByType('div').props;
+    expect(getProps()).toEqual({ tabIndex: -1 });
+
+    propsMergeFnResult = { patrick123: 'hanna' };
+    component.update(<TestComponent style={{ color: 'red' }} hidden />);
+    expect(getProps()).toEqual({ patrick123: 'hanna' });
+  });
+
+  test('merge function provider', () => {
+    const TestComponent = extendComponent('div')((Div) => {
+      return <Div />;
+    });
+
+    const component = create(
+      <MergeFunctionProvider propsMergeFn={() => ({ tabIndex: -1 })}>
+        <TestComponent style={{ color: 'red' }} />
+      </MergeFunctionProvider>
+    );
+    const getProps = (): any => component.root.findByType('div').props;
+    expect(getProps()).toEqual({ tabIndex: -1 });
+
+    component.update(
+      <MergeFunctionProvider propsMergeFn={() => ({ patrick123: 'hanna' })}>
+        <TestComponent style={{ color: 'red' }} hidden />
+      </MergeFunctionProvider>
+    );
+    expect(getProps()).toEqual({ patrick123: 'hanna' });
+  });
+});
+
+test("extender merge fn overrides extender getter's merge fn", () => {
+  const TestComponent = extendComponent(
+    'div',
+    () => ({ mergeFn1: 'blah123' } as any)
+  )(
+    (Div) => {
+      return <Div />;
+    },
+    () => ({ mergeFn2: 'blah123' } as any)
+  );
+
+  const component = create(<TestComponent style={{ color: 'red' }} />);
+  const getProps = (): any => component.root.findByType('div').props;
+  expect(getProps()).toEqual({ mergeFn2: 'blah123' });
+});
+
+test('props merge function is called with the correct arguments', () => {
+  const propsMergeFn = jest.fn(() => ({}));
+  const TestComponent = extendComponent(
+    'div',
+    propsMergeFn
+  )((Div) => {
+    return <Div title="blah" />;
+  });
+
+  create(<TestComponent style={{ color: 'red' }} />);
+  expect(propsMergeFn).toHaveBeenNthCalledWith(1, {
+    outerProps: { style: { color: 'red' } },
+    innerProps: { title: 'blah' },
+    defaultMergeFn: defaultPropsMergeFn,
+  } satisfies PropsMergeFnInfo);
+
+  create(<TestComponent style={{ backgroundColor: 'red' }} hidden />);
+  expect(propsMergeFn).toHaveBeenNthCalledWith(2, {
+    outerProps: { style: { backgroundColor: 'red' }, hidden: true },
+    innerProps: { title: 'blah' },
+    defaultMergeFn: defaultPropsMergeFn,
+  } satisfies PropsMergeFnInfo);
+});
+
+test("extender args merge function overrides merge function provider's merge function", () => {
+  const TestComponent = extendComponent(
+    'div',
+    () => ({ extenderGetterArgs: '123' } as any)
+  )(
+    (Div) => {
+      return <Div />;
+    },
+    () => ({ extenderArgs: '123' } as any)
+  );
+
+  const component = create(
+    <MergeFunctionProvider
+      propsMergeFn={() => ({ mergeFunctionProviderFn: '123' })}
+    >
+      <TestComponent style={{ color: 'red' }} />
+    </MergeFunctionProvider>
+  );
+  const getProps = (): any => component.root.findByType('div').props;
+  expect(getProps()).toEqual({ extenderArgs: '123' });
+
+  component.update(
+    <MergeFunctionProvider
+      propsMergeFn={() => ({ mergeFunctionProviderFn2: '1234' })}
+    >
+      <TestComponent style={{ color: 'red' }} hidden />
+    </MergeFunctionProvider>
+  );
+  expect(getProps()).toEqual({ extenderArgs: '123' });
 });

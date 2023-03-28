@@ -11,6 +11,7 @@ export type {
   ExtendableComponentType,
   PropHelpers as ComponentExtenderPropHelpers,
   PropsMergeFn,
+  PropsMergeFnInfo,
   RenderFn as ComponentExtenderRenderFn,
   ResultComponentProps as ComponentExtenderResultComponentProps,
   RootComponent as ComponentExtenderRootComponent,

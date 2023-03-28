@@ -1,10 +1,16 @@
 import {
+  createContext,
   createElement,
   forwardRef,
   ForwardRefRenderFunction,
+  useContext,
   useMemo,
 } from 'react';
 import { defaultPropsMergeFn } from './defaultPropsMergeFn';
+import {
+  MergeFunctionProvider,
+  MergeFunctionProviderContext,
+} from './MergeFunctionProvider';
 import {
   BaseComponentPropsToIncludeConstraint,
   ComponentExtenderGetter,
@@ -17,10 +23,15 @@ import {
   ResultComponentProps,
   RootComponent,
 } from './types';
-import {
-  useConsumeObservableValue,
-  useCreateValueObservable,
-} from './utils/ValueObservable';
+
+interface __RootComponentCommunicationContextValue {
+  pluckAllProps: { pluckAllProps: boolean };
+  pluckedProps: Set<string | number | symbol>;
+  outerProps: object;
+}
+
+const __RootComponentCommunicationContext =
+  createContext<__RootComponentCommunicationContextValue | null>(null);
 
 export const extendComponent: ComponentExtenderGetter = <
   BaseComponent extends ExtendableComponentType
@@ -47,7 +58,7 @@ export const extendComponent: ComponentExtenderGetter = <
       BaseComponentPropsToInclude
     >
   ) => {
-    const extenderPropsMergeFn = propsMergeFn;
+    const extenderArgsMergeFn = propsMergeFn;
     const Fn: ForwardRefRenderFunction<
       ExtendableComponentProps<ExtendableComponentType>['ref'],
       ResultComponentProps<
@@ -60,20 +71,22 @@ export const extendComponent: ComponentExtenderGetter = <
       const pluckedProps = new Set<string | number | symbol>();
       const pluckAllProps = { pluckAllProps: false }; // we need this to be a reference to an object so that we can mutate it in the pluckAll function
 
-      const observableValues = useCreateValueObservable({
-        outerProps,
-        pluckedProps,
-        pluckAllProps,
-      });
-
       const RootComponentFn: RootComponent<BaseComponent> = useMemo(
         () => {
           const Fn: ForwardRefRenderFunction<
             ExtendableComponentProps<BaseComponent>['ref'],
             ExtendableComponentProps<BaseComponent>
           > = (innerProps, innerRef) => {
+            const rootComponentCommunicationContext = useContext(
+              __RootComponentCommunicationContext
+            );
+            if (!rootComponentCommunicationContext) {
+              throw new Error(
+                "You cannot use the RootComponent of an extended component outside it's render function."
+              );
+            }
             const { outerProps, pluckedProps, pluckAllProps } =
-              useConsumeObservableValue(observableValues);
+              rootComponentCommunicationContext!;
 
             const preparedOuterProps = (() => {
               if (pluckAllProps.pluckAllProps) return {};
@@ -96,8 +109,7 @@ export const extendComponent: ComponentExtenderGetter = <
             })();
 
             const mergeFn =
-              extenderPropsMergeFn ??
-              extenderGetterPropsMergeFn ??
+              useContext(MergeFunctionProviderContext)!.propsMergeFn ??
               defaultPropsMergeFn;
 
             const mergedProps = mergeFn({
@@ -180,18 +192,22 @@ export const extendComponent: ComponentExtenderGetter = <
         return peek();
       };
 
+      const mergeFn = extenderArgsMergeFn ?? extenderGetterPropsMergeFn;
       return (
-        <>
-          {renderFn(RootComponentFn, detectPlucked(), {
-            pluckAll,
-            pluck,
-            peek,
-            detectPlucked,
-          })}
-        </>
+        <MergeFunctionProvider propsMergeFn={mergeFn}>
+          <__RootComponentCommunicationContext.Provider
+            value={{ outerProps, pluckedProps, pluckAllProps }}
+          >
+            {renderFn(RootComponentFn, detectPlucked(), {
+              pluckAll,
+              pluck,
+              peek,
+              detectPlucked,
+            })}
+          </__RootComponentCommunicationContext.Provider>
+        </MergeFunctionProvider>
       );
     };
-
     return forwardRef(Fn) as any;
   };
 };

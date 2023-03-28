@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import {
   ElementType,
   FC,
@@ -34,12 +33,12 @@ export type DefaultPropsMergeFn = (info: {
   innerProps: ExtendableComponentProps<any>;
 }) => ExtendableComponentProps<any>;
 
-export type PropsMergeFn<
+export type PropsMergeFnInfo<
   BaseComponent extends ExtendableComponentType = any,
   AdditionalProps extends object = any,
   RefType extends RefTypeConstraint = any,
   BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<BaseComponent> = any
-> = (info: {
+> = {
   outerProps: ResultComponentProps<
     BaseComponent,
     AdditionalProps,
@@ -48,7 +47,21 @@ export type PropsMergeFn<
   >;
   innerProps: ExtendableComponentProps<BaseComponent>;
   defaultMergeFn: DefaultPropsMergeFn;
-}) => ExtendableComponentProps<BaseComponent>;
+};
+
+export type PropsMergeFn<
+  BaseComponent extends ExtendableComponentType = any,
+  AdditionalProps extends object = any,
+  RefType extends RefTypeConstraint = any,
+  BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<BaseComponent> = any
+> = (
+  info: PropsMergeFnInfo<
+    BaseComponent,
+    AdditionalProps,
+    RefType,
+    BaseComponentPropsToInclude
+  >
+) => ExtendableComponentProps<BaseComponent>;
 
 export interface PropHelpers<
   BaseComponent extends ExtendableComponentType,
@@ -62,7 +75,6 @@ export interface PropHelpers<
     RefType,
     BaseComponentPropsToInclude
   >;
-
   pluck: <
     Attributes extends keyof ResultComponentProps<
       BaseComponent,
@@ -80,14 +92,12 @@ export interface PropHelpers<
       BaseComponentPropsToInclude
     >[Key];
   };
-
   pluckAll: () => ResultComponentProps<
     BaseComponent,
     AdditionalProps,
     RefType,
     BaseComponentPropsToInclude
   >;
-
   peek: () => ResultComponentProps<
     BaseComponent,
     AdditionalProps,

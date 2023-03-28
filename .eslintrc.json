@@ -32,14 +32,6 @@
     "no-var": "error",
     "prefer-const": "warn",
     "prefer-arrow-callback": "warn",
-    "max-lines": [
-      "warn",
-      {
-        "max": 200,
-        "skipBlankLines": false,
-        "skipComments": false
-      }
-    ],
     "quotes": [
       "warn",
       "single",
