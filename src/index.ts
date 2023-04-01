@@ -14,6 +14,6 @@ export type {
   PropsMergeFnInfo,
   RenderFn as ComponentExtenderRenderFn,
   ResultComponentProps as ComponentExtenderResultComponentProps,
-  RootComponent as ComponentExtenderRootComponent,
+  RootOrChildComponent as ComponentExtenderRootComponent,
 } from './types';
 export { mergeRefs } from './utils/mergeRefs';
