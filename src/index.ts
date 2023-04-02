@@ -1,19 +1,28 @@
-export { createComponentExtenderGroup } from './createComponentExtenderGroup';
-export type { BaseCreateComponentExtenderGroupProps } from './createComponentExtenderGroup';
+import { createCustomComponentExtender } from './createCustomComponentExtender';
+export {
+  additionalComponent,
+  createCustomComponentExtender,
+} from './createCustomComponentExtender';
+export type { BaseCreateCustomComponentExtenderProps } from './createCustomComponentExtender';
 export { defaultPropsMergeFn } from './defaultPropsMergeFn';
-export { extendComponent } from './extendComponent';
+export { MergeFunctionProvider } from './MergeFunctionProvider';
+export { ROOT_COMPONENT_LABEL } from './types';
 export type {
   ComponentExtender,
-  ComponentExtenderGetter,
-  ComponentExtenderGroup,
+  ComponentExtenderFn,
+  ComponentExtenderFnGetter,
+  ComponentExtenderFnWithChildComponents,
   DefaultPropsMergeFn,
   ExtendableComponentProps,
   ExtendableComponentType,
-  PropHelpers as ComponentExtenderPropHelpers,
+  PropHelpers,
   PropsMergeFn,
   PropsMergeFnInfo,
-  RenderFn as ComponentExtenderRenderFn,
-  ResultComponentProps as ComponentExtenderResultComponentProps,
-  RootOrChildComponent as ComponentExtenderRootComponent,
+  RenderFn,
+  RenderFnWithChildComponents,
+  ResultComponentProps,
+  RootOrChildComponent,
+  RootPropHelpers,
 } from './types';
 export { mergeRefs } from './utils/mergeRefs';
+export const extendComponent = createCustomComponentExtender();

@@ -1,4 +1,5 @@
 # react-extend-components
+
 This package makes it simple and intuitive to create reusable, customizable components that are based on existing components, while handling prop merging, ref forwarding, and typing (with TypeScript), automatically.
 
 In essence, it allows you to easily 'extend' a component so that you 'inherit' all the existing props (and their implementation) while overriding some and adding your own.

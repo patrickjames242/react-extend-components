@@ -199,11 +199,11 @@ export type ResultComponentProps<
   (RefType extends 'default' ? {} : { ref?: Ref<RefType> }) &
   ChildComponentsAdditionalProps<ChildComponents>;
 
-export type ComponentExtenderGetter = {
+export type ComponentExtenderFnGetter = {
   <BaseComponent extends ExtendableComponentType>(
     baseComponent: BaseComponent,
     propsMergeFn?: PropsMergeFn<BaseComponent>
-  ): ComponentExtender<BaseComponent>;
+  ): ComponentExtenderFn<BaseComponent>;
   <
     BaseComponent extends ExtendableComponentType,
     ChildComponents extends ChildComponentsConstraint
@@ -211,41 +211,42 @@ export type ComponentExtenderGetter = {
     baseComponent: BaseComponent,
     childComponents: ChildComponents,
     propsMergeFn?: PropsMergeFn<BaseComponent, ChildComponents>
-  ): ComponentExtenderWithChildComponents<
+  ): ComponentExtenderFnWithChildComponents<
     BaseComponent,
     FilterChildComponents<ChildComponents>
   >;
 };
 
-export type ComponentExtender<BaseComponent extends ExtendableComponentType> = <
-  AdditionalProps extends object,
-  RefType extends RefTypeConstraint = 'default',
-  BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<BaseComponent> = keyof ExtendableComponentProps<BaseComponent>
->(
-  renderFn: RenderFn<
-    BaseComponent,
-    AdditionalProps,
-    RefType,
-    BaseComponentPropsToInclude
-  >,
-  propsMergeFn?: PropsMergeFn<
-    BaseComponent,
-    {},
-    AdditionalProps,
-    RefType,
-    BaseComponentPropsToInclude
-  >
-) => FC<
-  ResultComponentProps<
-    BaseComponent,
-    {},
-    AdditionalProps,
-    RefType,
-    BaseComponentPropsToInclude
-  >
->;
+export type ComponentExtenderFn<BaseComponent extends ExtendableComponentType> =
+  <
+    AdditionalProps extends object,
+    RefType extends RefTypeConstraint = 'default',
+    BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<BaseComponent> = keyof ExtendableComponentProps<BaseComponent>
+  >(
+    renderFn: RenderFn<
+      BaseComponent,
+      AdditionalProps,
+      RefType,
+      BaseComponentPropsToInclude
+    >,
+    propsMergeFn?: PropsMergeFn<
+      BaseComponent,
+      {},
+      AdditionalProps,
+      RefType,
+      BaseComponentPropsToInclude
+    >
+  ) => FC<
+    ResultComponentProps<
+      BaseComponent,
+      {},
+      AdditionalProps,
+      RefType,
+      BaseComponentPropsToInclude
+    >
+  >;
 
-export type ComponentExtenderWithChildComponents<
+export type ComponentExtenderFnWithChildComponents<
   BaseComponent extends ExtendableComponentType,
   ChildComponents extends ChildComponentsConstraint
 > = <
@@ -277,15 +278,15 @@ export type ComponentExtenderWithChildComponents<
   >
 >;
 
-export type ComponentExtenderGroup<
-  AdditionalComponents extends ComponentExtenderGroup.AdditionalComponentsConstraint
-> = ComponentExtenderGetter & {
-  Fragment: ComponentExtender<typeof Fragment>;
+export type ComponentExtender<
+  AdditionalComponents extends ComponentExtender.AdditionalComponentsConstraint
+> = ComponentExtenderFnGetter & {
+  Fragment: ComponentExtenderFn<typeof Fragment>;
 } & {
-  [Tag in (typeof allHtmlTags)[number]]: ComponentExtender<Tag>;
+  [Tag in (typeof allHtmlTags)[number]]: ComponentExtenderFn<Tag>;
 } & {
-  [ComponentKey in keyof AdditionalComponents]: ComponentExtender<
-    AdditionalComponents[ComponentKey] extends ComponentExtenderGroup.AdditionalComponent<
+  [ComponentKey in keyof AdditionalComponents]: ComponentExtenderFn<
+    AdditionalComponents[ComponentKey] extends ComponentExtender.AdditionalComponent<
       infer T
     >
       ? T
@@ -293,7 +294,7 @@ export type ComponentExtenderGroup<
   >;
 };
 
-export namespace ComponentExtenderGroup {
+export namespace ComponentExtender {
   export type AdditionalComponent<
     Component extends JSXElementConstructor<any>
   > =

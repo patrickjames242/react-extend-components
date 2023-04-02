@@ -8,7 +8,7 @@ import {
 import { defaultPropsMergeFn } from '../defaultPropsMergeFn';
 import { MergeFunctionProviderContext } from '../MergeFunctionProvider';
 import { ExtendableComponentProps, ExtendableComponentType } from '../types';
-import { __RootComponentCommunicationContext } from './__RootComponentCommunicationContext';
+import { RootComponentCommunicationContext } from './RootComponentCommunicationContext';
 
 export function getInnerComponent<Component extends ExtendableComponentType>(
   component: Component,
@@ -19,7 +19,7 @@ export function getInnerComponent<Component extends ExtendableComponentType>(
     ExtendableComponentProps<Component>
   > = (innerProps, innerRef) => {
     const rootComponentCommunicationContext = useContext(
-      __RootComponentCommunicationContext
+      RootComponentCommunicationContext
     );
     if (!rootComponentCommunicationContext) {
       throw new Error(

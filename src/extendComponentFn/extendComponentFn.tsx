@@ -1,24 +1,23 @@
 import { forwardRef, ForwardRefRenderFunction } from 'react';
-import { createRootAndChildComponents } from './helpers/createRootAndChildComponents';
-import { getChildComponentPropsNameProp } from './helpers/getChildComponentPropsNameProp';
-import { getPropHelpers } from './helpers/getPropsHelpers';
-import { initializePluckedPropInfoMap } from './helpers/PluckedPropInfo';
+import { createRootAndChildComponents } from '../helpers/createRootAndChildComponents';
+import { getChildComponentPropsNameProp } from '../helpers/getChildComponentPropsNameProp';
+import { getPropHelpers } from '../helpers/getPropsHelpers';
+import { initializePluckedPropInfoMap } from '../helpers/PluckedPropInfo';
 import {
-  __RootComponentCommunicationContext,
-  __RootComponentCommunicationContextValue,
-} from './helpers/__RootComponentCommunicationContext';
-import { MergeFunctionProvider } from './MergeFunctionProvider';
+  RootComponentCommunicationContext,
+  RootComponentCommunicationContextValue,
+} from '../helpers/RootComponentCommunicationContext';
+import { MergeFunctionProvider } from '../MergeFunctionProvider';
 import {
   ChildComponentsConstraint,
-  ComponentExtenderGetter,
+  ComponentExtenderFnGetter,
   ExtendableComponentType,
   PropsMergeFn,
   RootPropHelpers,
   ROOT_COMPONENT_LABEL,
-} from './types';
-import { uncapitalizeFirstLetter } from './utils/uncapitalizeFirstLetter';
+} from '../types';
 
-export const extendComponent: ComponentExtenderGetter = ((
+export const extendComponentFn: ComponentExtenderFnGetter = ((
   baseComponent: ExtendableComponentType,
   childComponentsOrPropsMergeFn?:
     | PropsMergeFn
@@ -64,7 +63,7 @@ export const extendComponent: ComponentExtenderGetter = ((
         }),
         forChild: (childName: string) => {
           const childProps =
-            outerProps[uncapitalizeFirstLetter(childName) + 'Props'] ?? {};
+            outerProps[getChildComponentPropsNameProp(childName)] ?? {};
           return getPropHelpers({
             props: childProps,
             ref: childProps['ref'],
@@ -73,7 +72,7 @@ export const extendComponent: ComponentExtenderGetter = ((
         },
       };
 
-      const getProps: __RootComponentCommunicationContextValue['getProps'] = (
+      const getProps: RootComponentCommunicationContextValue['getProps'] = (
         label
       ) => {
         if (label === ROOT_COMPONENT_LABEL) {
@@ -91,7 +90,7 @@ export const extendComponent: ComponentExtenderGetter = ((
 
       return (
         <MergeFunctionProvider propsMergeFn={mergeFn}>
-          <__RootComponentCommunicationContext.Provider
+          <RootComponentCommunicationContext.Provider
             value={{ getProps, pluckedPropsInfoObj, outerRef }}
           >
             {childComponentsDeclaration
@@ -106,7 +105,7 @@ export const extendComponent: ComponentExtenderGetter = ((
                   helpers.detectPlucked(),
                   helpers
                 )}
-          </__RootComponentCommunicationContext.Provider>
+          </RootComponentCommunicationContext.Provider>
         </MergeFunctionProvider>
       );
     };

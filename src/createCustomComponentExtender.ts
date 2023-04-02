@@ -1,34 +1,34 @@
 import { Fragment, JSXElementConstructor } from 'react';
-import { extendComponent } from './extendComponent';
-import { ComponentExtenderGroup, PropsMergeFn } from './types';
+import { extendComponentFn } from './extendComponentFn/extendComponentFn';
+import { ComponentExtender, PropsMergeFn } from './types';
 import { allHtmlTags } from './utils/allHtmlTags';
 
-export type BaseCreateComponentExtenderGroupProps = {
+export type BaseCreateCustomComponentExtenderProps = {
   propsMergeFn?: PropsMergeFn;
 };
 
-export function createComponentExtenderGroup<
-  AdditionalComponents extends ComponentExtenderGroup.AdditionalComponentsConstraint
+export function createCustomComponentExtender<
+  AdditionalComponents extends ComponentExtender.AdditionalComponentsConstraint
 >(
   options: {
     additionalComponents: AdditionalComponents;
-  } & BaseCreateComponentExtenderGroupProps
-): ComponentExtenderGroup<AdditionalComponents>;
+  } & BaseCreateCustomComponentExtenderProps
+): ComponentExtender<AdditionalComponents>;
 
-export function createComponentExtenderGroup(
-  options?: BaseCreateComponentExtenderGroupProps
-): ComponentExtenderGroup<{}>;
+export function createCustomComponentExtender(
+  options?: BaseCreateCustomComponentExtenderProps
+): ComponentExtender<{}>;
 
-export function createComponentExtenderGroup(
+export function createCustomComponentExtender(
   ...args: any[]
-): ComponentExtenderGroup<any> {
+): ComponentExtender<any> {
   const options = args[0] ?? {};
   const additionalComponents = options.additionalComponents ?? {};
   const propsMergeFn = options.propsMergeFn;
-  const result: any = (...args: any[]) => (extendComponent as any)(...args);
-  result.Fragment = extendComponent(Fragment, propsMergeFn);
+  const result: any = (...args: any[]) => (extendComponentFn as any)(...args);
+  result.Fragment = extendComponentFn(Fragment, propsMergeFn);
   for (const tag of allHtmlTags) {
-    (result as any)[tag] = extendComponent(tag, propsMergeFn);
+    (result as any)[tag] = extendComponentFn(tag, propsMergeFn);
   }
   for (const key in additionalComponents) {
     const { component, additionalComponentPropsMergeFn } = (() => {
@@ -44,7 +44,7 @@ export function createComponentExtenderGroup(
           additionalComponentPropsMergeFn: propsMergeFn,
         };
     })();
-    (result as any)[key] = extendComponent(
+    (result as any)[key] = extendComponentFn(
       component,
       additionalComponentPropsMergeFn
     );
@@ -57,7 +57,7 @@ export function additionalComponent<
 >(
   component: Component,
   propsMergeFn?: PropsMergeFn<Component, any>
-): ComponentExtenderGroup.AdditionalComponent<Component> {
+): ComponentExtender.AdditionalComponent<Component> {
   if (propsMergeFn) {
     return {
       propsMergeFn,
