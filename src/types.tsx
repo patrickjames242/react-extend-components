@@ -197,10 +197,10 @@ type ChildComponentsAdditionalProps<
 
 export type ResultComponentProps<
   BaseComponent extends ExtendableComponentType,
-  ChildComponents extends ChildComponentsConstraint,
-  AdditionalProps extends object,
-  RefType extends RefTypeConstraint,
-  BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<ExtendableComponentType>
+  ChildComponents extends ChildComponentsConstraint = {},
+  AdditionalProps extends object = {},
+  RefType extends RefTypeConstraint = 'default',
+  BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<ExtendableComponentType> = keyof ExtendableComponentProps<BaseComponent>
 > = Omit<
   Omit<
     Partial<
@@ -235,7 +235,7 @@ export type ComponentExtenderFnGetter = {
 
 export type ComponentExtenderFn<BaseComponent extends ExtendableComponentType> =
   <
-    AdditionalProps extends object,
+    AdditionalProps extends object = {},
     RefType extends RefTypeConstraint = 'default',
     BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<BaseComponent> = keyof ExtendableComponentProps<BaseComponent>
   >(

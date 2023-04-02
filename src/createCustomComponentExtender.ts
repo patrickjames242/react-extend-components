@@ -24,11 +24,32 @@ export function createCustomComponentExtender(
 ): ComponentExtender<any> {
   const options = args[0] ?? {};
   const additionalComponents = options.additionalComponents ?? {};
-  const propsMergeFn = options.propsMergeFn;
-  const result: any = (...args: any[]) => (extendComponentFn as any)(...args);
-  result.Fragment = extendComponentFn(Fragment, propsMergeFn);
+  const customExtenderPropsMergeFn = options.propsMergeFn;
+
+  /**
+   * Here we're wrapping the extendComponentFn so that the props merge function provided to the createCustomComponentExtender function is used by default if no props merge function is provided when calling the resulting function.
+   */
+  const result: any = (
+    baseComponent: any,
+    childComponentsOrPropsMergeFn?: any,
+    propsMergeFn?: any
+  ) => {
+    if (typeof childComponentsOrPropsMergeFn === 'object') {
+      return extendComponentFn(
+        baseComponent,
+        childComponentsOrPropsMergeFn,
+        propsMergeFn ?? customExtenderPropsMergeFn
+      );
+    } else {
+      return extendComponentFn(
+        baseComponent,
+        childComponentsOrPropsMergeFn ?? customExtenderPropsMergeFn
+      );
+    }
+  };
+  result.Fragment = extendComponentFn(Fragment, customExtenderPropsMergeFn);
   for (const tag of allHtmlTags) {
-    (result as any)[tag] = extendComponentFn(tag, propsMergeFn);
+    (result as any)[tag] = extendComponentFn(tag, customExtenderPropsMergeFn);
   }
   for (const key in additionalComponents) {
     const { component, additionalComponentPropsMergeFn } = (() => {
@@ -41,7 +62,7 @@ export function createCustomComponentExtender(
       } else
         return {
           component: additionalComponents[key],
-          additionalComponentPropsMergeFn: propsMergeFn,
+          additionalComponentPropsMergeFn: customExtenderPropsMergeFn,
         };
     })();
     (result as any)[key] = extendComponentFn(
