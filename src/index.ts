@@ -25,4 +25,4 @@ export type {
   RootPropHelpers,
 } from './types';
 export { mergeRefs } from './utils/mergeRefs';
-export const extendComponent = createCustomComponentExtender();
+export const extend = createCustomComponentExtender();

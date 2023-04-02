@@ -14,6 +14,7 @@ In essence, it allows you to easily 'extend' a component so that you 'inherit' a
 - [Handling Refs](#handling-refs)
 - [Custom Components](#custom-components)
 - [Merging Props / Refs](#merging-props--refs)
+- [Custom `extend` Functions](#custom-extend-functions)
 
 ## Installation
 
@@ -23,9 +24,9 @@ $ npm install react-extend-components
 ## Basic Usage
 
 ```tsx
-import { extendComponent } from 'react-extend-components';
+import { extend } from 'react-extend-components';
 
-export const SubmitButton = extendComponent('button')(Button => {
+export const SubmitButton = extend('button')(Button => {
    return <Button 
       className="SubmitButton" 
       style={{
@@ -52,9 +53,9 @@ export const SubmitButton = extendComponent('button')(Button => {
 ### Adding custom props
 
 ```tsx
-import { extendComponent } from 'react-extend-components';
+import { extend } from 'react-extend-components';
 
-export const NavMenu = extendComponent('div')<{
+export const NavMenu = extend('div')<{
    text: string; // 1. define the type of your custom props
 }>((Div, { text }) => { // 2. destructure the props you want to use here. 
    return <Div>{text}</Div>
@@ -63,7 +64,6 @@ export const NavMenu = extendComponent('div')<{
 // Any prop you destructure will not be passed to the underlying div. All other props are.
 
 <NavMenu text="My Nav Menu" />
-
 ```
 
 Learn more [here](#customizing-props)
@@ -71,10 +71,10 @@ Learn more [here](#customizing-props)
 ### Automatic Ref Merging
 
 ```tsx
-import { extendComponent } from 'react-extend-components';
+import { extend } from 'react-extend-components';
 import { useRef } from 'react';
 
-export const HeaderView = extendComponent('div')(Div => { 
+export const HeaderView = extend('div')(Div => { 
    // you can add a ref in here...
    const ref = useRef<HTMLDivElement>(null);
    return <Div ref={ref}>{text}</Div>
@@ -90,10 +90,10 @@ function App(){
 
 ### Defining Custom Refs
 ```tsx
-import { extendComponent } from 'react-extend-components';
+import { extend } from 'react-extend-components';
 import { useImperativeHandle } from 'react';
 
-const DialogBox = extendComponent('div')<
+const DialogBox = extend('div')<
    {},
    { // 1. add the type of the ref as the second generic parameter
       setOpened: (isOpen: boolean) => void; 
@@ -219,10 +219,10 @@ The purpose of this package is to take care of all of this automatically, and al
 Here's how you would rewrite the above component using this package.
 
 ```tsx
-import { extendComponent } from 'react-extend-components';
+import { extend } from 'react-extend-components';
 import { useRef } from 'react';
 
-export const SubmitButton = extendComponent('button')(Button => {
+export const SubmitButton = extend('button')(Button => {
    const buttonRef = useRef<HTMLButtonElement>(null);
    return <Button 
       ref={buttonRef}
@@ -274,10 +274,10 @@ Also, the library automatically gives the users of the component access to the a
 When we 'extend' the props of another component, most times we would also want to add a few additional props of our own. Here's how you would do this.
 
 ```tsx
-import { extendComponent } from 'react-extend-components';
+import { extend } from 'react-extend-components';
 import { ComponentType } from 'react';
 
-export const SubmitButton = extendComponent('button')<{
+export const SubmitButton = extend('button')<{
    buttonTitle: string;
    Icon?: ComponentType<{className?: string}>
 }>((Button, { buttonTitle, Icon }) => {
@@ -309,9 +309,9 @@ Note that if any of your custom prop names clash with the base element's prop na
 By default, the `children` prop is excluded from the type information of the resulting component. This is because, usually, components would want to add their own children to the underlying element or have specific control over how values provided to `children` are dealt with.
 
 ```tsx
-import { extendComponent } from 'react-extend-components';
+import { extend } from 'react-extend-components';
 
-const HeaderView = extendComponent('header')(Header => {
+const HeaderView = extend.header(Header => {
    return <Header>
       <h1>My Awesome Header</h1>
    </Header>
@@ -322,9 +322,9 @@ const HeaderView = extendComponent('header')(Header => {
 If you want to give users the ability to add a `children` prop, add it to your custom props type information.
 
 ```tsx
-import { extendComponent } from 'react-extend-components';
+import { extend } from 'react-extend-components';
 
-const HeaderView = extendComponent('header')<{
+const HeaderView = extend.header<{
    children?: string
 }>((Header, { children }) => {
    return <Header>
@@ -340,9 +340,9 @@ const HeaderView = extendComponent('header')<{
 When you extend a base element / component, the resulting component 'inherits' all the prop types from the base component automatically. So outsiders can override any of the props of the base component if they wanted to (only for [those props](#merging-props--refs) that aren't merged by default). In doing this, they could accidentally change critical functionality within your component. For example: 
 
 ```tsx
-import { extendComponent } from 'react-extend-components';
+import { extend } from 'react-extend-components';
 
-const FileInput = extendComponent('input')((Input) => {
+const FileInput = extend.input((Input) => {
    return <Input type="file" />
 });
 
@@ -352,10 +352,10 @@ const FileInput = extendComponent('input')((Input) => {
 To prevent this, you may want to alter the props that are made available from the base component to the resulting component. Here's how you can do this.
 
 ```tsx
-import { extendComponent } from 'react-extend-components';
+import { extend } from 'react-extend-components';
 import { ComponentProps } from 'react';
 
-const FileInput = extendComponent('input')<
+const FileInput = extend.input<
   {},
   'default', // Tells the function to use the default method of figuring out the type of the ref. This is the default value if you don't set it. We're only setting it here because we need to set the third generic parameter.
   keyof Omit<ComponentProps<'input'>, 'type'> // here we can specify a list of keys to include from the base component. Only keys specified in this union are included from the base component. (Only known keys are included)
@@ -373,9 +373,9 @@ const FileInput = extendComponent('input')<
 Normally you would access the props passed to the resulting component with the `props` object argument in your component as follows:
 
 ```tsx
-import { extendComponent } from 'react-extend-components';
+import { extend } from 'react-extend-components';
 
-const MyComponent = extendComponent('div')((
+const MyComponent = extend('div')((
    Div, 
    props // <- all the props that were passed to the component
 ) => {
@@ -391,9 +391,9 @@ However, there is a little more to this `props` object than meets the eye. If yo
 But if you removed the `console.log(props.title)` statement and ran the code again, suddenly the div element magically has a title attribute! What gives?
 
 ```tsx
-import { extendComponent } from 'react-extend-components';
+import { extend } from 'react-extend-components';
 
-const MyComponent = extendComponent('div')((Div, props) => {
+const MyComponent = extend('div')((Div, props) => {
    //console.log(props.title); <- this prevented the div from having a title attribute, but removing it causes the title attribute to appear
    return <Div></Div>
 });
@@ -405,7 +405,7 @@ The reasoning for this is that when you access any prop from the props argument,
 
 The library can't simply pass all the props received to the underlying element because this would mean custom props you've defined would always be passed to the HTML element as an attribute. In most cases this would cause React to complain with an error about invalid HTML attributes, and if your custom prop names clash with HTML attributes, this would result in unwanted / unexpected behavior. So the library has to figure out which props you actually use within the component, then only include them in the resulting component if you explicitly set them. 
 
-This is made possible because the `extendComponent` function doesn't simply pass you the same props object React passes it. It passes you a new object with a getter for every prop the user passed to the component. Whenever you access any prop via dot notation or destructuring, the component makes a note of this and 'hides' those specific props from the underlying element / component (unless you set them explicitly), while passing all the other props down normally.
+This is made possible because the `extend` function doesn't simply pass you the same props object React passes it. It passes you a new object with a getter for every prop the user passed to the component. Whenever you access any prop via dot notation or destructuring, the component makes a note of this and 'hides' those specific props from the underlying element / component (unless you set them explicitly), while passing all the other props down normally.
 
 In summary, be aware that when you access any prop from the `props` object, you are entirely responsible for making sure that specific prop is passed to the base component / element.
 
@@ -414,10 +414,10 @@ In summary, be aware that when you access any prop from the `props` object, you 
 An important implication of the way the `props` object is implemented is that the default functionality only works if you access props within the execution of the render function itself. If you access a prop in an effect or some other function that is executed after the render function returns, there is no guarantee that the prop will be 'hidden' as described above.
 
 ```tsx
-import { extendComponent } from 'react-extend-components';
+import { extend } from 'react-extend-components';
 import { useEffect } from 'react';
 
-const MyComponent = extendComponent('div')<{
+const MyComponent = extend('div')<{
    someCustomProp: string;
 }>((Div, props) => {
 
@@ -436,10 +436,10 @@ In the above example, `someCustomProp` will still be passed to the underlying di
 To fix this, grab a reference to the prop in the render function via destructuring or a variable.
 
 ```tsx
-import { extendComponent } from 'react-extend-components';
+import { extend } from 'react-extend-components';
 import { useEffect } from 'react';
 
-const MyComponent = extendComponent('div')<{
+const MyComponent = extend('div')<{
    someCustomProp: string;
 }>((
    Div, 
@@ -453,7 +453,7 @@ const MyComponent = extendComponent('div')<{
 
 // or...
 
-const MyComponent2 = extendComponent('div')<{
+const MyComponent2 = extend('div')<{
    someCustomProp: string;
 }>((Div, props) => { 
    const someCustomProp = props.someCustomProp; // ✅ Awesome! we're accessing the prop in the render function so it won't be passed to the underlying element!
@@ -475,9 +475,9 @@ For whatever reason, you might want to have access to all the props that were pa
 To do this, use the `helpers.peek` function.
 
 ```tsx
-import { extendComponent } from 'react-extend-components';
+import { extend } from 'react-extend-components';
 
-const Link = extendComponent('a')((A, _, helpers) => {
+const Link = extend('a')((A, _, helpers) => {
    const { href } = helpers.peek(); // The underlying anchor element will still receive all the passed props (including href), but you can still 'peek' at the value.
    return <A className="app-link">
       My AwesomeLink
@@ -492,9 +492,9 @@ In some circumstances you may find the default 'magical' functionality of the `p
 Note that the function hides all the props you specify, regardless of whether or not you access them in the resulting object.
 
 ```tsx
-import { extendComponent } from 'react-extend-components';
+import { extend } from 'react-extend-components';
 
-const Link = extendComponent('a')<{
+const Link = extend('a')<{
    myCustomProp1: string;
    myCustomProp2: number;
 }>((A, _, helpers) => {
@@ -513,9 +513,9 @@ const Link = extendComponent('a')<{
 This function hides all props passed to your component from the underlying base component by default, and returns all those props in its object return value. In this case you would have to handle the passing of those props to the component yourself.
 
 ```tsx
-import { extendComponent } from 'react-extend-components';
+import { extend } from 'react-extend-components';
 
-const Link = extendComponent('a')((A, _, helpers) => {
+const Link = extend('a')((A, _, helpers) => {
    const allProps = helpers.pluckAll(); // Now no props will be passed to the anchor element automatically. We have to pass them ourselves.
    return <A {...allProps}>
       My AwesomeLink
@@ -528,9 +528,9 @@ const Link = extendComponent('a')((A, _, helpers) => {
 This function is essentially the same magic behind the `props` argument. It wraps all the props provided to the component in a getter which can detect which one you're accessing within the component and hide it from the base component by default.
 
 ```tsx
-import { extendComponent } from 'react-extend-components';
+import { extend } from 'react-extend-components';
 
-const Link = extendComponent('a')<{
+const Link = extend('a')<{
    myCustomProp: string;
 }>((A, _, helpers) => {
    const { myCustomProp } = helpers.detectPlucked(); // myCustomProp will be hidden from the anchor element because we're accessing it, but all other props will be passed on normally.
@@ -540,7 +540,7 @@ const Link = extendComponent('a')<{
 });
 ```
 
-This is actually what `extendComponent` uses under the hood to provide you with the `props` argument.
+This is actually what `extend` uses under the hood to provide you with the `props` argument.
 
 ## Handling Refs
 
@@ -549,9 +549,9 @@ When working with function components, React prevents you from treating a ref li
 You can destructure a ref as you would expect.
 
 ```tsx
-import { extendComponent } from 'react-extend-components';
+import { extend } from 'react-extend-components';
 
-const ListItemView = extendComponent('div')((
+const ListItemView = extend('div')((
    Div, 
    { ref } // now the ref won't be passed to the underlying element
 ) => {
@@ -564,10 +564,10 @@ const ListItemView = extendComponent('div')((
 Here's how you would implement a custom ref.
 
 ```tsx
-import { extendComponent } from 'react-extend-components';
+import { extend } from 'react-extend-components';
 import { useImperativeHandle } from 'react';
 
-const DialogBox = extendComponent('div')<
+const DialogBox = extend('div')<
    {}, // add custom prop types here
    { // add the type of the ref as the second generic parameter
       setOpened: (isOpen: boolean) => void; 
@@ -590,63 +590,36 @@ const DialogBox = extendComponent('div')<
 
 ## Custom Components
 
-By default, the `createComponentExtenderGroup` factory function gives you access to all the HTML elements listed in React's JSX.IntrinsicElements interface.
+By default, the `extend` function gives you access to all the HTML elements listed in React's JSX.IntrinsicElements interface.
 
 You're able to use them with this convenient syntax.
 
 ```tsx
-// in ComponentExtenders.ts
+import { extend } from 'react-extend-components';
 
-import { createComponentExtenderGroup } from 'react-extend-components';
+export const MyComponent = extend('div')( // or section, or form, or button, or any other HTML tag
+   Div => <Div>{/* ... */}</Div>
+);
 
-export const ComponentExtenders = createComponentExtenderGroup();
+// or...
 
-// in MyComponent.tsx
-
-import { ComponentExtenders } from './ComponentExtenders';
-
-export const MyComponent = ComponentExtenders.div( // or section, or form, or button, or any other HTML tag
-   Div => {
-      return <Div>{/* ... */}</Div>
-   }
+export const MyComponent = extend.div( // or section, or form, or button, or any other HTML tag
+   Div => <Div>{/* ... */}</Div>
 );
 ```
 
 But you also have the ability to do the same with custom components that you've made yourself. The library makes this completely type-safe as well.
 
 ```tsx
-import { ComponentExtenders } from './ComponentExtenders';
+import { extend } from 'react-extend-components';
 import { MainAppButton } from './MainAppButton';
 
-export const MyComponent = ComponentExtenders(MainAppButton)(Button => {
+export const MyComponent = extend(MainAppButton)(Button => {
    return <Button>{/* ... */}</Button>
 })
 ```
 
 Please note, however, that the types for all the props of the root element (`MainAppButton` in this case), are marked as optional by default. If you would like to require those props, add them to your [custom props](#customizing-props) generic parameter.
-
-You can also define custom components in an `additionalComponents` object when creating your component extender so that you can access them on the extender using the same dot syntax that you would use for HTML elements.
-
-```tsx
-// in ComponentExtenders.ts
-
-import { MainAppButton } from './MainAppButton';
-import { createComponentExtenderGroup } from 'react-extend-components';
-
-export const ComponentExtenders = createComponentExtenderGroup({
-   MainAppButton
-});
-
-// in MyComponent.tsx
-
-import { ComponentExtenders } from './ComponentExtenders';
-
-export const MyComponent = ComponentExtenders.MainAppButton(
-   Button => {
-      return <Button />
-   }
-);
-```
 
 ## Merging Props / Refs
 
@@ -655,9 +628,9 @@ When you pass the same prop to the resulting component as well as to the underly
 - **The `style` prop:** The individual style properties passed to the outermost component will override the properties passed to the inner element.
 
 ```tsx
-import { ComponentExtenders } from './ComponentExtenders';
+import { extend } from 'react-extend-components';
 
-export const MyButton = ComponentExtenders.button(Button => {
+export const MyButton = extend.button(Button => {
    return <Button style={{
       backgroundColor: 'purple',
       color: 'white',
@@ -676,9 +649,9 @@ export const MyButton = ComponentExtenders.button(Button => {
 ```
 - **The `className` prop:** The className string passed to the outermost component is appended to the className string passed to the inner element.
 ```tsx
-import { ComponentExtenders } from './ComponentExtenders';
+import { extend } from 'react-extend-components';
 
-export const MyButton = ComponentExtenders.button(Button => {
+export const MyButton = extend.button(Button => {
    return <Button className="My-Button">My Button</Button>
 });
 
@@ -692,9 +665,9 @@ export const MyButton = ComponentExtenders.button(Button => {
 - **Functions:** Functions are merged together by passing a new function to the prop that first calls the inner component function prop, then the outer one. The return value of the outer prop is the one that the function will return (if the outer prop is set).
 
 ```tsx
-import { ComponentExtenders } from './ComponentExtenders';
+import { extend } from 'react-extend-components';
 
-export const MyButton = ComponentExtenders.button(Button => {
+export const MyButton = extend('button')(Button => {
    return <Button 
       onClick={() => {
          // This function will be called first
@@ -715,9 +688,9 @@ export const MyButton = ComponentExtenders.button(Button => {
 Please note that in a situation where either the inner prop or outer prop is a function and the other one is a non-function (with the exception of null and undefined), the outer prop will always replace the inner one.
 
 ```tsx
-import { ComponentExtenders } from './ComponentExtenders';
+import { extend } from 'react-extend-components';
 
-export const MyButton = ComponentExtenders.button(Button => {
+export const MyButton = extend.button(Button => {
    return <Button 
       onClick={() => {
          // this function will never be called because the corresponding outer prop is a string and it will override this value
@@ -735,9 +708,9 @@ export const MyButton = ComponentExtenders.button(Button => {
 - **The `children` prop:** The inner children prop will always override the outer prop if the inner prop is anything other than undefined.
 
 ```tsx
-import { ComponentExtenders } from './ComponentExtenders';
+import { extend } from 'react-extend-components';
 
-export const MyButton = ComponentExtenders.button<{
+export const MyButton = extend.button<{
    children?: string
 }>(Button => {
    return <Button>
@@ -755,9 +728,9 @@ export const MyButton = ComponentExtenders.button<{
 If you would like to allow users to customize the children of the component, destructure the `children` prop and incorporate it into the component.
 
 ```tsx
-import { ComponentExtenders } from './ComponentExtenders';
+import { extend } from 'react-extend-components';
 
-export const MyButton = ComponentExtenders.button<{
+export const MyButton = extend.button<{
    children?: string
 }>((Button, { children }) => {
    return <Button>
@@ -774,9 +747,9 @@ export const MyButton = ComponentExtenders.button<{
 
 - **Any Other Prop:** For any other prop, the outer props will override the inner props.
 ```tsx
-import { ComponentExtenders } from './ComponentExtenders';
+import { extend } from 'react-extend-components';
 
-export const MyButton = ComponentExtenders.button(Button => {
+export const MyButton = extend('button')(Button => {
    return <Button 
       title="My Button" // this value will be ignored 
    >My Button</Button>
@@ -794,71 +767,131 @@ export const MyButton = ComponentExtenders.button(Button => {
 
 You are given the option to implement a custom merge function if the provided merge functionality is insufficient. 
 
-Here's how you would implement it.
+#### The Merge Function
 
 ```tsx
-import { createComponentExtenderGroup } from 'react-extend-components';
+import { PropsMergeFn } from 'react-extend-components';
 
-export const ComponentExtenders = createComponentExtenderGroup({
-   propsMergeFn: ({ 
-      innerProps, 
-      outerProps, 
-      defaultMergeFn 
-   }) => {
-      const resultingProps = {/* ... */}
-      // implement your custom merge strategy
-      return resultingProps;
-   },
-});
-```
-
-You are provided with the `innerProps`, which are the props that were passed to the innermost element, and the `outerProps`, which are the props the users of your resulting component have passed to it.
-
-Because refs are treated like regular props in this library, the `ref` passed to the outermost component will be included in `outerProps` and the `ref` passed to the inner component will be included in `innerProps`. This means you would be responsible for ensuring these are merged properly. You may use the `mergeRefs` function exported by this library if you so desire.
-
-Similarly, you will also be responsible for merging the `children` props together.
-
-Note that you will only receive props in the `outerProps` object that were not accessed via the `props` argument or 'plucked' within the component.
-
-You are provided with the `defaultMergeFn` in the merge function, which you may find useful if you'd just like to merge a specific prop but have the library handle the rest.
-
-```tsx
-import { createComponentExtenderGroup } from 'react-extend-components';
-
-export const ComponentExtenders = createComponentExtenderGroup({
-   propsMergeFn: ({ 
-      innerProps, 
-      outerProps, 
-      defaultMergeFn 
-   }) => {
-      const resultingProps = defaultMergeFn({ 
-         innerProps, 
-         outerProps 
-      });
-      // customize the result a little bit
-      return resultingProps;
-   },
-});
-```
-
-You can also specify a customized merge function at the individual component level.
-
-```tsx
-import { ComponentExtenders } from './ComponentExtenders';
-
-const MyComponent = ComponentExtenders.div(Div => {
-   return <Div></Div>
-}, ({
-   innerProps,
-   outerProps,
-   defaultMergeFn
+const mergeFunction: PropsMergeFn = ({
+  innerProps,
+  outerProps,
+  label,
+  type,
+  defaultMergeFn,
 }) => {
-   const mergedProps = {/* ... */}
-   /// customized merge implementation
-   return 
-});
+  const resultingProps = {/* ... */}
+  // implement your custom merge strategy
+  return resultingProps;
+};
 ```
-This will, of course, override the merge function at the Component Extender level.
+
+Here are the arguments provided to you in the merge function.
+
+| Argument | Description |
+| --- | --- |
+| `innerProps` | The props that were passed to the underlying component / element within the component declaration.
+| `outerProps` | The props that were passed to the outermost component by the users of your component. Only props that were not accessed via the [`props`](#accessing-props) argument or [plucked](#helperspluck) will be provided in this object.
+| `label` | The label of the component being merged. This refers either to the label you provided for a child component in the childComponents object, or "root" for the root component.
+| `type` | The type of the component that is provided to React. In the case of HTML elements, it will be the string form of the element, like 'div', 'button' or 'a'. For components it will be the component class or function.
+| `defaultMergeFn` | This is the function the library uses by default to merge your props. You may use this if you'd like to merge specific props but have the library handle the rest.
+
+Because refs are treated like regular props in this library, the `ref` passed to the outermost component will be included in `outerProps` and the `ref` passed to the inner component will be included in `innerProps`. This means the merge function is responsible for ensuring these are merged properly. You may use the `mergeRefs` function exported by this library if you so desire.
+
+Similarly, the merge function is also be responsible for merging the `children` props together.
+
+Note that the merge function will only receive props in the `outerProps` object that were not accessed via the `props` argument or 'plucked' within the component.
+
+Here is an example of usage of the `defaultMergeFn` argument.
+
+```tsx
+import { PropsMergeFn } from 'react-extend-components';
+
+const mergeFunction: PropsMergeFn = ({
+  innerProps,
+  outerProps,
+  label,
+  type,
+  defaultMergeFn,
+}) => {
+   const resultingProps = defaultMergeFn({ 
+      innerProps, 
+      outerProps 
+   });
+   // customize the result a little bit
+   return resultingProps;
+};
+```
 
 
+#### Global Merge Function
 
+To set a global merge function for your entire app, add a `MergeFunctionProvider` at the top of your React tree that provides the merge function for all of your extended components.
+
+The `MergeFunctionProvider` only provides a merge function for the components that don't already have a merge function explicitly set.
+
+```tsx
+import { extend, MergeFunctionProvider } from 'react-extend-components';
+
+const MyButton = extend('button')(Button => <Button />)
+
+<MergeFunctionProvider
+   propsMergeFn={
+      ({ 
+         innerProps, 
+         outerProps, 
+         defaultMergeFn 
+      }) => {
+         const resultingProps = {/* ... */}
+         // implement your custom merge strategy
+         return resultingProps;
+      }
+   }
+>
+   <MyButton />
+</MergeFunctionProvider>
+```
+#### Per-Component Merge Function
+
+You may override the global or default merge function on a per-component basis.
+
+```tsx
+import { extend, MergeFunctionProvider } from 'react-extend-components';
+
+const MyButton = extend('button')(
+   Button => <Button />,
+   ({ innerProps, outerProps }) => {
+      const mergedProps = {/* ... */}
+      /// customized merge implementation
+      return 
+   }
+)
+```
+
+## Custom `extend` Functions
+
+The library gives you the option of creating your own `extend` functions. There are two main benefits of doing this.
+
+- It allows you to implement a specific merge function for certain components within your apps which will override the default or global merge function. This might be useful if you are writing a component library and don't want to allow users to alter the way your props are merged with a `MergeFunctionProvider`.
+
+- It allows you to add additional components to the function that can be accessed via dot syntax. If you have a few custom components in your app that you extend frequently, this saves you from having to import those components every time you extend them.
+
+```tsx
+import { createCustomComponentExtender } from 'react-extend-components';
+
+function MyCustomButton() {
+  return <button></button>;
+}
+
+const customExtend = createCustomComponentExtender({
+   additionalComponents: {
+      MyCustomButton,
+   },
+   propsMergeFn: ({ innerProps, outerProps }) => {
+      return { /* ... */ };
+   },
+});
+
+const MyExtendedCustomButton = customExtend.MyCustomButton(
+   Button => <Button />
+)
+```

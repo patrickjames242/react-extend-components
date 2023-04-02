@@ -49,10 +49,22 @@ export type PropsMergeFnInfo<
   RefType extends RefTypeConstraint = any,
   BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<BaseComponent> = any
 > = {
+  /**
+   * The type of the component being merged
+   */
   type:
     | BaseComponent
     | FilterChildComponents<ChildComponents>[keyof FilterChildComponents<ChildComponents>];
+  /**
+   * The label of the component being merged.
+   * This refers either to the label you provided for a child
+   * component in the childComponents object, or "root" for the root component
+   */
   label: ROOT_COMPONENT_LABEL | keyof FilterChildComponents<ChildComponents>;
+  /**
+   * The props that were passed to the outermost component
+   * by the users of your component
+   */
   outerProps: ResultComponentProps<
     BaseComponent,
     {},
@@ -60,6 +72,10 @@ export type PropsMergeFnInfo<
     RefType,
     BaseComponentPropsToInclude
   >;
+  /**
+   * The props that you pass to the inner underlying component
+   * within the component declaration
+   */
   innerProps: ExtendableComponentProps<BaseComponent>;
   defaultMergeFn: DefaultPropsMergeFn;
 };
