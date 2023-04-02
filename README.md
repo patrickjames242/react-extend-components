@@ -10,10 +10,15 @@ In essence, it allows you to easily 'extend' a component so that you 'inherit' a
 - [Basic Usage](#basic-usage)
 - [Reasoning](#reasoning)
 - [Customizing Props](#customizing-props)
+   - [The `children` Prop](#the-children-prop)
+   - [Overriding Base Component Prop Types](#overriding-base-component-prop-types)
 - [Accessing Props](#accessing-props)
+   - [The `props` argument](#the-props-argument)
+   - [The `helpers` argument](#the-helpers-argument)
 - [Handling Refs](#handling-refs)
 - [Custom Components](#custom-components)
 - [Merging Props / Refs](#merging-props--refs)
+   - [Custom Merging](#custom-merging)
 - [Custom `extend` Functions](#custom-extend-functions)
 
 ## Installation
@@ -115,6 +120,19 @@ const DialogBox = extend('div')<
 });
 ```
 Learn more [here](#handling-refs)
+
+### Extending Custom Components
+
+```tsx
+import { extend } from 'react-extend-components';
+import { MainAppButton } from './MainAppButton';
+
+export const MyComponent = extend(MainAppButton)(Button => {
+   return <Button>{/* ... */}</Button>
+})
+```
+
+Learn more [here](#custom-components)
 
 ## Reasoning
 
