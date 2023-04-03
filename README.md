@@ -718,7 +718,7 @@ You may add as many child components as you like, provided each one has a differ
 
 Note that the labels for all components in the `childComponents` render function argument are altered so that their first letters are always capitalized. Likewise, the prop you set on the resulting component to customize child components should always have its first letter 'uncapitalized'.
 
-Props passed to child components from outside the component and inside the component are merged in the same way it is for the root component. Read more about prop merging [here](#merging-props--refs).
+Props passed to child components from outside the component and inside the component are merged in the same way they are for the root component. Read more about prop merging [here](#merging-props--refs).
 
 ## Merging Props / Refs
 

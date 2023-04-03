@@ -97,13 +97,35 @@ export type PropsMergeFn<
 ) => ExtendableComponentProps<BaseComponent>;
 
 export interface PropHelpers<Props extends Record<string, any> = any> {
+  /**
+   * This function is essentially the same magic behind the `props`
+   * argument. It wraps all the props provided to the component in a
+   * getter which can detect which one you're accessing within the
+   * component and hide it from the underlying element by default.
+   */
   detectPlucked: () => Props;
+  /**
+   * Allows you to explicitly specify the props you want to be hidden
+   * from the underlying element and returns only those props in the
+   * returned object.
+   */
   pluck: <Attributes extends keyof Props = never>(
     ...attributes: Attributes[]
   ) => {
     [Key in Attributes]: Props[Key];
   };
+  /**
+   * Hides all props passed to your component from the underlying
+   * component by default, and returns all those props in its
+   * object return value. In this case you would have to handle the
+   * passing of those props to the component yourself.
+   */
   pluckAll: () => Props;
+  /**
+   * Returns all the props that were passed to the component without
+   * preventing those props from being passed to the underlying
+   * element.
+   */
   peek: () => Props;
 }
 
@@ -122,6 +144,9 @@ export interface RootPropHelpers<
       BaseComponentPropsToInclude
     >
   > {
+  /**
+   * Returns a helpers object for a child component
+   */
   forChild: <ChildName extends keyof FilterChildComponents<ChildComponents>>(
     childName: ChildName
   ) => PropHelpers<
