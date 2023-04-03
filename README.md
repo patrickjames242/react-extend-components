@@ -17,6 +17,7 @@ In essence, it allows you to easily 'extend' a component so that you 'inherit' a
    - [The `helpers` argument](#the-helpers-argument)
 - [Handling Refs](#handling-refs)
 - [Custom Components](#custom-components)
+- [Adding Configurable Child Components](#adding-configurable-child-components)
 - [Merging Props / Refs](#merging-props--refs)
    - [Custom Merging](#custom-merging)
 - [Custom `extend` Functions](#custom-extend-functions)
@@ -133,6 +134,36 @@ export const MyComponent = extend(MainAppButton)(Button => {
 ```
 
 Learn more [here](#custom-components)
+
+### Configurable Child Components
+
+```tsx
+import { extend } from 'react-extend-components';
+
+const HeaderView = extend('div', { LogOutButton: 'button' })(
+   (Div, { LogOutButton }) => {
+      return (
+         <Div>
+            <LogOutButton 
+               onClick={() => {/* ... */}}
+            >Log Out</LogOutButton>
+         </Div>
+      );
+   }
+);
+
+<HeaderView
+   logOutButtonProps={{
+      // all props we pass in here will be passed to the log out button
+      style: { color: 'red' },
+      onClick: () => {
+         // log out
+      },
+   }}
+/>;
+```
+
+Learn more [here](#adding-configurable-child-components)
 
 ## Reasoning
 
@@ -639,6 +670,56 @@ export const MyComponent = extend(MainAppButton)(Button => {
 
 Please note, however, that the types for all the props of the root element (`MainAppButton` in this case), are marked as optional by default. If you would like to require those props, add them to your [custom props](#customizing-props) generic parameter.
 
+## Adding Configurable Child Components
+
+An additional use case that this library covers is the ability to customize components that are children of the root component.
+
+For example, if you have a `HeaderView` component with a log out button inside it, you may want to allow users to customize the props passed to that button from the `HeaderView` component itself. 
+
+Here's how you would accomplish this.
+
+```tsx
+import { extend } from 'react-extend-components';
+
+const HeaderView = extend(
+   'div', 
+   { // 1. define a child components object with labels for your components and the components themselves
+      LogOutButton: 'button' // you may specify a string for an HTML element or a component function or class.
+   } 
+)((
+   Div, 
+   { LogOutButton } // this is an object mapping capitalized labels from your definition object to components that you will use within the render function
+) => {
+   return (
+      <Div>
+         { /* use the component / element as you normally would in here */}
+         <LogOutButton 
+            onClick={() => {/* ... */}}
+         >Log Out</LogOutButton>
+      </Div>
+   );
+});
+
+<HeaderView
+   // You are automatically given access to this prop, and its name depends 
+   // on the label you provided for it in the definition above.
+   // It is made type-safe using TypeScript template literal magic 😬
+   logOutButtonProps={{
+      // all props we pass in here will be passed to the log out button
+      style: { color: 'red' },
+      onClick: () => {
+         // log out
+      },
+   }}
+/>;
+```
+
+You may add as many child components as you like, provided each one has a different label. 
+
+Note that the labels for all components in the `childComponents` render function argument are altered so that their first letters are always capitalized. Likewise, the prop you set on the resulting component to customize child components should always have its first letter 'uncapitalized'.
+
+Props passed to child components from outside the component and inside the component are merged in the same way it is for the root component. Read more about prop merging [here](#merging-props--refs).
+
 ## Merging Props / Refs
 
 When you pass the same prop to the resulting component as well as to the underlying element / component, the library has to figure out how to merge the two props. Here is how merging is handled for the various props.
@@ -912,4 +993,19 @@ const customExtend = createCustomComponentExtender({
 const MyExtendedCustomButton = customExtend.MyCustomButton(
    Button => <Button />
 )
+```
+
+Note that if you don't specify any merge function, the resulting extend function will use the merge function from the `MergeFunctionProvider` if present. If you would like to always have your components use the default merge function but not be affected by the `MergeFunctionProvider`, explicitly specify the default merge function in your `createCustomComponentExtender` function call.
+
+```tsx
+import { 
+   createCustomComponentExtender,
+   defaultPropsMergeFn
+} from 'react-extend-components';
+
+const customExtend = createCustomComponentExtender({
+   propsMergeFn: defaultPropsMergeFn,
+});
+
+// now all components created with this custom extend function will be unaffected by the MergeFunctionProvider
 ```
