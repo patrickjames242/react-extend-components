@@ -1,12 +1,15 @@
-import { forwardRef, ForwardRefRenderFunction } from 'react';
+import {
+  createContext,
+  forwardRef,
+  ForwardRefRenderFunction,
+  useMemo,
+  useRef,
+} from 'react';
 import { createRootAndChildComponents } from '../helpers/createRootAndChildComponents';
 import { getChildComponentPropsNameProp } from '../helpers/getChildComponentPropsNameProp';
 import { getPropHelpers } from '../helpers/getPropsHelpers';
+import { InnerComponentsCommunicationContextValue } from '../helpers/InnerComponentsCommunicationContextValue';
 import { initializePluckedPropInfoMap } from '../helpers/PluckedPropInfo';
-import {
-  RootComponentCommunicationContext,
-  RootComponentCommunicationContextValue,
-} from '../helpers/RootComponentCommunicationContext';
 import { MergeFunctionProvider } from '../MergeFunctionProvider';
 import {
   ChildComponentsConstraint,
@@ -16,6 +19,13 @@ import {
   RootPropHelpers,
   ROOT_COMPONENT_LABEL,
 } from '../types';
+
+const getUniqueNumber = (() => {
+  let prev = 0;
+  return () => {
+    return ++prev;
+  };
+})();
 
 export const extendComponentFn: ComponentExtenderFnGetter = ((
   baseComponent: ExtendableComponentType,
@@ -38,9 +48,6 @@ export const extendComponentFn: ComponentExtenderFnGetter = ((
       };
     }
   })();
-
-  const { root: RootComponent, ...ChildComponents } =
-    createRootAndChildComponents(baseComponent, childComponentsDeclaration);
 
   return (renderFn: any, propsMergeFn?: PropsMergeFn<any, any, any, any>) => {
     const extenderArgsMergeFn = propsMergeFn;
@@ -72,7 +79,7 @@ export const extendComponentFn: ComponentExtenderFnGetter = ((
         },
       };
 
-      const getProps: RootComponentCommunicationContextValue['getProps'] = (
+      const getProps: InnerComponentsCommunicationContextValue['getProps'] = (
         label
       ) => {
         if (label === ROOT_COMPONENT_LABEL) {
@@ -88,10 +95,39 @@ export const extendComponentFn: ComponentExtenderFnGetter = ((
         }
       };
 
+      const InnerComponentsCommunicationContext = useRef(
+        useMemo(() => {
+          const context =
+            createContext<InnerComponentsCommunicationContextValue | null>(
+              null
+            );
+          context.displayName =
+            'ReactExtendComponents_InnerComponentsCommunicationContext_' +
+            getUniqueNumber();
+          return context;
+        }, [])
+      ).current;
+
+      const { RootComponent, ChildComponents } = useRef(
+        useMemo(() => {
+          const { root: RootComponent, ...ChildComponents } =
+            createRootAndChildComponents(
+              baseComponent,
+              childComponentsDeclaration,
+              InnerComponentsCommunicationContext
+            );
+          return { RootComponent, ChildComponents };
+        }, [InnerComponentsCommunicationContext])
+      ).current;
+
       return (
         <MergeFunctionProvider propsMergeFn={mergeFn}>
-          <RootComponentCommunicationContext.Provider
-            value={{ getProps, pluckedPropsInfoObj, outerRef }}
+          <InnerComponentsCommunicationContext.Provider
+            value={{
+              getProps,
+              pluckedPropsInfoObj,
+              outerRef,
+            }}
           >
             {childComponentsDeclaration
               ? renderFn(
@@ -105,7 +141,7 @@ export const extendComponentFn: ComponentExtenderFnGetter = ((
                   helpers.detectPlucked(),
                   helpers
                 )}
-          </RootComponentCommunicationContext.Provider>
+          </InnerComponentsCommunicationContext.Provider>
         </MergeFunctionProvider>
       );
     };
