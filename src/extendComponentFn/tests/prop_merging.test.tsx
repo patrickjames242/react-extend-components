@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { create } from 'react-test-renderer';
 import { defaultPropsMergeFn } from '../../defaultPropsMergeFn';
 import { MergeFunctionProvider } from '../../MergeFunctionProvider';
@@ -185,4 +186,29 @@ test("extender args merge function overrides merge function provider's merge fun
     </MergeFunctionProvider>
   );
   expect(getProps()).toEqual({ extenderArgs: '123' });
+});
+
+test("merge functions for specific components are only used by that component and not it's children", () => {
+  const Component1 = extendComponentFn('p')<{ children?: ReactNode }>(
+    (P) => <P />,
+    ({ outerProps }) =>
+      ({
+        fn: 'component1 merge function',
+        children: outerProps.children,
+      } as any)
+  );
+  const Component2 = extendComponentFn('div')(
+    (Div) => (
+      <Component1>
+        <Div />
+      </Component1>
+    ),
+    () => ({ fn: 'component2 merge function' } as any)
+  );
+
+  const component = create(<Component2 />);
+
+  expect(component.root.findByType('div').props).toEqual({
+    fn: 'component2 merge function',
+  });
 });
