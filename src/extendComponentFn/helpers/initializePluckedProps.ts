@@ -2,7 +2,7 @@ import {
   ChildComponentsConstraint,
   FilterChildComponents,
   ROOT_COMPONENT_LABEL,
-} from '../types';
+} from '../../types';
 
 export interface PluckedPropInfo {
   isPropPlucked: (prop: string | number | symbol) => boolean;
@@ -12,7 +12,28 @@ export interface PluckedPropInfo {
   pluckAllProps: () => void;
 }
 
-function initializePluckedPropInfo(): PluckedPropInfo {
+export function initializePluckedProps<
+  ChildComponents extends ChildComponentsConstraint
+>(
+  childComponents: ChildComponents | undefined
+): (
+  label: ROOT_COMPONENT_LABEL | keyof FilterChildComponents<ChildComponents>
+) => PluckedPropInfo {
+  const obj: any = {};
+  for (const childKey in childComponents ?? {}) {
+    obj[childKey] = __initializeIndividualPluckedPropInfo();
+  }
+  obj[ROOT_COMPONENT_LABEL] = __initializeIndividualPluckedPropInfo();
+
+  return (label) => {
+    if (!obj[label]) {
+      throw new Error(`No plucked prop info for label: ${String(label)}`);
+    }
+    return obj[label];
+  };
+}
+
+function __initializeIndividualPluckedPropInfo(): PluckedPropInfo {
   const pluckedProps = new Set<string | number | symbol>();
   let pluckAllProps = false;
 
@@ -23,20 +44,4 @@ function initializePluckedPropInfo(): PluckedPropInfo {
     pluckAllProps: () => (pluckAllProps = true),
     getAllPluckedProps: () => [...pluckedProps],
   };
-}
-
-export function initializePluckedPropInfoMap<
-  ChildComponents extends ChildComponentsConstraint
->(
-  childComponents: ChildComponents
-): { [ROOT_COMPONENT_LABEL]: PluckedPropInfo } & Record<
-  keyof FilterChildComponents<ChildComponents>,
-  PluckedPropInfo
-> {
-  const returnVal: any = {};
-  for (const childKey in childComponents) {
-    returnVal[childKey] = initializePluckedPropInfo();
-  }
-  returnVal[ROOT_COMPONENT_LABEL] = initializePluckedPropInfo();
-  return returnVal;
 }

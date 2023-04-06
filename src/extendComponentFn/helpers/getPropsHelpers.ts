@@ -1,6 +1,6 @@
 import { Ref } from 'react';
-import { PropHelpers } from '../types';
-import { PluckedPropInfo } from './PluckedPropInfo';
+import { PropHelpers } from '../../types';
+import { PluckedPropInfo } from './initializePluckedProps';
 
 export function getPropHelpers({
   props,
@@ -8,7 +8,7 @@ export function getPropHelpers({
   pluckedPropsInfo,
 }: {
   props: any;
-  ref?: Ref<any>;
+  ref: Ref<any> | undefined;
   pluckedPropsInfo: PluckedPropInfo;
 }): PropHelpers<any> {
   const peek: PropHelpers<any>['peek'] = () => {

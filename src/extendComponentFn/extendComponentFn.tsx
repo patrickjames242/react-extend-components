@@ -1,17 +1,5 @@
-import {
-  createContext,
-  forwardRef,
-  ForwardRefRenderFunction,
-  useContext,
-  useMemo,
-  useRef,
-} from 'react';
+import { forwardRef, ForwardRefRenderFunction, useContext } from 'react';
 import { defaultPropsMergeFn } from '../defaultPropsMergeFn';
-import { createRootAndChildComponents } from '../helpers/createRootAndChildComponents';
-import { getChildComponentPropsNameProp } from '../helpers/getChildComponentPropsNameProp';
-import { getPropHelpers } from '../helpers/getPropsHelpers';
-import { InnerComponentsCommunicationContextValue } from '../helpers/InnerComponentsCommunicationContextValue';
-import { initializePluckedPropInfoMap } from '../helpers/PluckedPropInfo';
 import { MergeFunctionProviderContext } from '../MergeFunctionProvider';
 import {
   ChildComponentsConstraint,
@@ -21,13 +9,11 @@ import {
   RootPropHelpers,
   ROOT_COMPONENT_LABEL,
 } from '../types';
-
-const getUniqueNumber = (() => {
-  let prev = 0;
-  return () => {
-    return ++prev;
-  };
-})();
+import { getChildComponentPropsNameProp } from './helpers/getChildComponentPropsNameProp';
+import { getPropHelpers } from './helpers/getPropsHelpers';
+import { initializePluckedProps } from './helpers/initializePluckedProps';
+import { useInnerComponents } from './helpers/useInnerComponents';
+import { usePropsGetter } from './helpers/usePropsGetter';
 
 export const extendComponentFn: ComponentExtenderFnGetter = ((
   baseComponent: ExtendableComponentType,
@@ -58,29 +44,24 @@ export const extendComponentFn: ComponentExtenderFnGetter = ((
       any,
       any
     > = (outerProps, outerRef) => {
-      const pluckedPropsInfoObj = initializePluckedPropInfoMap(
-        childComponentsDeclaration ?? {}
+      const getPluckedPropsInfo = initializePluckedProps(
+        childComponentsDeclaration
       );
 
-      const mergeFunction = (() => {
-        const mergeFunctionsByPriority = [
+      const mergeFunction =
+        [
           extenderArgsMergeFn,
           extenderGetterPropsMergeFn,
           // eslint-disable-next-line react-hooks/rules-of-hooks
           useContext(MergeFunctionProviderContext)?.propsMergeFn,
           defaultPropsMergeFn,
-        ];
-
-        return (
-          mergeFunctionsByPriority.find((x) => x != null) ?? defaultPropsMergeFn
-        );
-      })();
+        ].find((x) => x != null) ?? defaultPropsMergeFn;
 
       const helpers: RootPropHelpers<any, {}, any, any, any> = {
         ...getPropHelpers({
           props: outerProps,
           ref: outerRef,
-          pluckedPropsInfo: pluckedPropsInfoObj[ROOT_COMPONENT_LABEL],
+          pluckedPropsInfo: getPluckedPropsInfo(ROOT_COMPONENT_LABEL),
         }),
         forChild: (childName: string) => {
           const { ref, ...childProps } =
@@ -88,59 +69,28 @@ export const extendComponentFn: ComponentExtenderFnGetter = ((
           return getPropHelpers({
             props: childProps,
             ref: ref,
-            pluckedPropsInfo: pluckedPropsInfoObj[childName]!,
+            pluckedPropsInfo: getPluckedPropsInfo(childName),
           }) as any;
         },
       };
 
-      const getProps: InnerComponentsCommunicationContextValue['getProps'] = (
-        label
-      ) => {
-        if (label === ROOT_COMPONENT_LABEL) {
-          const outerPropsCopy = { ...outerProps };
-          delete outerPropsCopy.ref;
-          if (outerRef) outerPropsCopy.ref = outerRef;
-          if (childComponentsDeclaration) {
-            for (const label in childComponentsDeclaration) {
-              delete outerPropsCopy[getChildComponentPropsNameProp(label)];
-            }
-          }
-          return outerPropsCopy;
-        } else {
-          return outerProps[getChildComponentPropsNameProp(label)] ?? {};
-        }
-      };
+      const getProps = usePropsGetter(
+        outerProps,
+        outerRef,
+        childComponentsDeclaration
+      );
 
-      const InnerComponentsCommunicationContext = useRef(
-        useMemo(() => {
-          const context =
-            createContext<InnerComponentsCommunicationContextValue | null>(
-              null
-            );
-          context.displayName =
-            'ReactExtendComponents_InnerComponentsCommunicationContext_' +
-            getUniqueNumber();
-          return context;
-        }, [])
-      ).current;
-
-      const { RootComponent, ChildComponents } = useRef(
-        useMemo(() => {
-          const { root: RootComponent, ...ChildComponents } =
-            createRootAndChildComponents(
-              baseComponent,
-              childComponentsDeclaration,
-              InnerComponentsCommunicationContext
-            );
-          return { RootComponent, ChildComponents };
-        }, [InnerComponentsCommunicationContext])
-      ).current;
+      const {
+        RootComponent,
+        ChildComponents,
+        InnerComponentsCommunicationContextProvider,
+      } = useInnerComponents(baseComponent, childComponentsDeclaration);
 
       return (
-        <InnerComponentsCommunicationContext.Provider
+        <InnerComponentsCommunicationContextProvider
           value={{
             getProps,
-            pluckedPropsInfoObj,
+            getPluckedPropsInfo,
             mergeFunction,
           }}
         >
@@ -152,7 +102,7 @@ export const extendComponentFn: ComponentExtenderFnGetter = ((
                 helpers
               )
             : renderFn(RootComponent as any, helpers.detectPlucked(), helpers)}
-        </InnerComponentsCommunicationContext.Provider>
+        </InnerComponentsCommunicationContextProvider>
       );
     };
     return forwardRef(ReactExtendComponents_ResultComponent) as any;

@@ -6,11 +6,11 @@ import {
   ForwardRefRenderFunction,
   useContext,
 } from 'react';
-import { defaultPropsMergeFn } from '../defaultPropsMergeFn';
-import { ExtendableComponentProps, ExtendableComponentType } from '../types';
+import { defaultPropsMergeFn } from '../../defaultPropsMergeFn';
+import { ExtendableComponentProps, ExtendableComponentType } from '../../types';
 import { InnerComponentsCommunicationContextValue } from './InnerComponentsCommunicationContextValue';
 
-export function getInnerComponent<Component extends ExtendableComponentType>(
+export function createInnerComponent<Component extends ExtendableComponentType>(
   component: Component,
   componentLabel: string,
   communicationContext: Context<InnerComponentsCommunicationContextValue | null>
@@ -25,12 +25,12 @@ export function getInnerComponent<Component extends ExtendableComponentType>(
         "You cannot use the root or child component of an extended component outside it's render function."
       );
     }
-    const { getProps, pluckedPropsInfoObj, mergeFunction } =
+    const { getProps, getPluckedPropsInfo, mergeFunction } =
       rootComponentCommunicationContext!;
 
     const outerProps = getProps(componentLabel);
+    const pluckedProps = getPluckedPropsInfo(componentLabel);
 
-    const pluckedProps = pluckedPropsInfoObj[componentLabel];
     if (pluckedProps == null) {
       throw new Error(
         `could not find the plucked props object for the component with the label ${componentLabel}`
