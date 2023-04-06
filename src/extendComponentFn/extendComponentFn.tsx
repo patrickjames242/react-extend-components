@@ -2,15 +2,17 @@ import {
   createContext,
   forwardRef,
   ForwardRefRenderFunction,
+  useContext,
   useMemo,
   useRef,
 } from 'react';
+import { defaultPropsMergeFn } from '../defaultPropsMergeFn';
 import { createRootAndChildComponents } from '../helpers/createRootAndChildComponents';
 import { getChildComponentPropsNameProp } from '../helpers/getChildComponentPropsNameProp';
 import { getPropHelpers } from '../helpers/getPropsHelpers';
 import { InnerComponentsCommunicationContextValue } from '../helpers/InnerComponentsCommunicationContextValue';
 import { initializePluckedPropInfoMap } from '../helpers/PluckedPropInfo';
-import { MergeFunctionProvider } from '../MergeFunctionProvider';
+import { MergeFunctionProviderContext } from '../MergeFunctionProvider';
 import {
   ChildComponentsConstraint,
   ComponentExtenderFnGetter,
@@ -60,7 +62,19 @@ export const extendComponentFn: ComponentExtenderFnGetter = ((
         childComponentsDeclaration ?? {}
       );
 
-      const mergeFn = extenderArgsMergeFn ?? extenderGetterPropsMergeFn;
+      const mergeFunction = (() => {
+        const mergeFunctionsByPriority = [
+          extenderArgsMergeFn,
+          extenderGetterPropsMergeFn,
+          // eslint-disable-next-line react-hooks/rules-of-hooks
+          useContext(MergeFunctionProviderContext)?.propsMergeFn,
+          defaultPropsMergeFn,
+        ];
+
+        return (
+          mergeFunctionsByPriority.find((x) => x != null) ?? defaultPropsMergeFn
+        );
+      })();
 
       const helpers: RootPropHelpers<any, {}, any, any, any> = {
         ...getPropHelpers({
@@ -69,11 +83,11 @@ export const extendComponentFn: ComponentExtenderFnGetter = ((
           pluckedPropsInfo: pluckedPropsInfoObj[ROOT_COMPONENT_LABEL],
         }),
         forChild: (childName: string) => {
-          const childProps =
+          const { ref, ...childProps } =
             outerProps[getChildComponentPropsNameProp(childName)] ?? {};
           return getPropHelpers({
             props: childProps,
-            ref: childProps['ref'],
+            ref: ref,
             pluckedPropsInfo: pluckedPropsInfoObj[childName]!,
           }) as any;
         },
@@ -84,6 +98,8 @@ export const extendComponentFn: ComponentExtenderFnGetter = ((
       ) => {
         if (label === ROOT_COMPONENT_LABEL) {
           const outerPropsCopy = { ...outerProps };
+          delete outerPropsCopy.ref;
+          if (outerRef) outerPropsCopy.ref = outerRef;
           if (childComponentsDeclaration) {
             for (const label in childComponentsDeclaration) {
               delete outerPropsCopy[getChildComponentPropsNameProp(label)];
@@ -121,28 +137,22 @@ export const extendComponentFn: ComponentExtenderFnGetter = ((
       ).current;
 
       return (
-        <MergeFunctionProvider propsMergeFn={mergeFn}>
-          <InnerComponentsCommunicationContext.Provider
-            value={{
-              getProps,
-              pluckedPropsInfoObj,
-              outerRef,
-            }}
-          >
-            {childComponentsDeclaration
-              ? renderFn(
-                  RootComponent as any,
-                  ChildComponents as any,
-                  helpers.detectPlucked(),
-                  helpers
-                )
-              : renderFn(
-                  RootComponent as any,
-                  helpers.detectPlucked(),
-                  helpers
-                )}
-          </InnerComponentsCommunicationContext.Provider>
-        </MergeFunctionProvider>
+        <InnerComponentsCommunicationContext.Provider
+          value={{
+            getProps,
+            pluckedPropsInfoObj,
+            mergeFunction,
+          }}
+        >
+          {childComponentsDeclaration
+            ? renderFn(
+                RootComponent as any,
+                ChildComponents as any,
+                helpers.detectPlucked(),
+                helpers
+              )
+            : renderFn(RootComponent as any, helpers.detectPlucked(), helpers)}
+        </InnerComponentsCommunicationContext.Provider>
       );
     };
     return forwardRef(ReactExtendComponents_ResultComponent) as any;

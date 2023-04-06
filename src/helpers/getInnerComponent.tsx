@@ -7,7 +7,6 @@ import {
   useContext,
 } from 'react';
 import { defaultPropsMergeFn } from '../defaultPropsMergeFn';
-import { MergeFunctionProviderContext } from '../MergeFunctionProvider';
 import { ExtendableComponentProps, ExtendableComponentType } from '../types';
 import { InnerComponentsCommunicationContextValue } from './InnerComponentsCommunicationContextValue';
 
@@ -26,7 +25,7 @@ export function getInnerComponent<Component extends ExtendableComponentType>(
         "You cannot use the root or child component of an extended component outside it's render function."
       );
     }
-    const { getProps, outerRef, pluckedPropsInfoObj } =
+    const { getProps, pluckedPropsInfoObj, mergeFunction } =
       rootComponentCommunicationContext!;
 
     const outerProps = getProps(componentLabel);
@@ -43,8 +42,6 @@ export function getInnerComponent<Component extends ExtendableComponentType>(
       const outer: any = {
         ...outerProps,
       };
-      delete outer.ref; // because react annoyingly adds a ref getter and setter to props that throws errors to remind us not to try to access it there
-      outerRef && (outer.ref = outerRef);
       for (const key of pluckedProps.getAllPluckedProps()) {
         delete outer[key];
       }
@@ -58,11 +55,7 @@ export function getInnerComponent<Component extends ExtendableComponentType>(
       return inner;
     })();
 
-    const mergeFn =
-      useContext(MergeFunctionProviderContext)!.propsMergeFn ??
-      defaultPropsMergeFn;
-
-    const mergedProps = mergeFn({
+    const mergedProps = mergeFunction({
       innerProps: preparedInnerProps,
       outerProps: preparedOuterProps,
       defaultMergeFn: defaultPropsMergeFn,

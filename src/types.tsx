@@ -77,6 +77,11 @@ export type PropsMergeFnInfo<
    * within the component declaration
    */
   innerProps: ExtendableComponentProps<BaseComponent>;
+
+  /**
+   * The default merge function that react-extend-components uses to merge
+   * your props
+   */
   defaultMergeFn: DefaultPropsMergeFn;
 };
 

@@ -36,6 +36,7 @@ export function getPropHelpers({
     const result: any = {};
 
     for (const key in props) {
+      if (key === 'ref') continue; // because react annoyingly adds a ref getter and setter to props to remind us not to try to access it there
       Object.defineProperty(result, key, {
         get: () => {
           pluckedPropsInfo.pluckProp(key);
