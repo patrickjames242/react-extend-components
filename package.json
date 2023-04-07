@@ -2,15 +2,24 @@
   "name": "react-extend-components",
   "version": "1.2.3",
   "description": "A package that makes it easy to create components that are based on already existing components.",
-  "main": "build/index.js",
-  "types": "build/index.d.ts",
+  "main": ".build/cjs/index.cjs",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./build/esm/index.mjs",
+      "require": "./build/cjs/index.cjs",
+      "default": "./build/cjs/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
   "scripts": {
-    "type-check": "tsc --noEmit --watch",
-    "build": "tsc --project ./tsconfig.build.json",
+    "type-check:watch": "tsc --noEmit --watch",
+    "type-check": "tsc --noEmit",
+    "build": "rollup -c",
     "format": "prettier --write ./**/*.{js,jsx,ts,tsx,html,css,scss,json}",
     "lint": "eslint ./src --ext .js,.jsx,.ts,.tsx --max-warnings=0",
     "lint:fix": "eslint ./src --ext .js,.jsx,.ts,.tsx --fix",
-    "prepublishOnly": "npm run lint && npm run test && npm run build",
+    "prepublishOnly": "npm run type-check && npm run lint && npm run test && npm run build",
     "test": "jest",
     "test:watch": "jest --watch",
     "start": "jest --watch"
@@ -41,6 +50,7 @@
   "devDependencies": {
     "@babel/preset-env": "^7.20.2",
     "@babel/preset-react": "^7.18.6",
+    "@rollup/plugin-typescript": "^11.1.0",
     "@testing-library/react": "^14.0.0",
     "@types/jest": "^29.4.0",
     "@types/react": "^18.0.28",
@@ -60,9 +70,12 @@
     "prettier": "^2.8.4",
     "prettier-plugin-organize-imports": "^3.2.2",
     "react-test-renderer": "^18.2.0",
+    "rollup": "^3.20.2",
+    "rollup-plugin-dts": "^5.3.0",
+    "rollup-plugin-esbuild": "^5.0.0",
     "ts-jest": "^29.0.5",
     "ts-node": "^10.9.1",
+    "tslib": "^2.5.0",
     "typescript": "^4.9.5"
-  },
-  "dependencies": {}
+  }
 }

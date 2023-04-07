@@ -1,4 +1,5 @@
 import { createContext, ReactNode, useContext, useMemo } from 'react';
+
 import { FCReturnType, PropsMergeFn } from './types';
 
 export interface MergeFunctionContextValue {

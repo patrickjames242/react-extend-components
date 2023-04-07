@@ -3,9 +3,8 @@
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./build",
-    "declaration": true,
     "moduleResolution": "node",
-    "target": "es5",
+    "target": "es6",
     "module": "ES2015",
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
