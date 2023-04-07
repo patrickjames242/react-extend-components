@@ -25,8 +25,11 @@ export function createInnerComponent<Component extends ExtendableComponentType>(
         "You cannot use the root or child component of an extended component outside it's render function."
       );
     }
-    const { getProps, getPluckedPropsInfo, mergeFunction } =
-      rootComponentCommunicationContext!;
+    const {
+      getOuterProps: getProps,
+      getPluckedPropsInfo,
+      mergeFunction,
+    } = rootComponentCommunicationContext!;
 
     const outerProps = getProps(componentLabel);
     const pluckedProps = getPluckedPropsInfo(componentLabel);

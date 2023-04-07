@@ -42,9 +42,9 @@ describe("destructured ref isn't passed to underlying component", () => {
     const myRef = jest.fn();
     // eslint-disable-next-line unused-imports/no-unused-vars
     const MyComponent = extendComponentFn('div', { child: 'section' })(
-      (Div, { Child }, _, helpers) => {
+      (Div, { Child }) => {
         // eslint-disable-next-line unused-imports/no-unused-vars
-        const { ref } = helpers.forChild('child').detectPlucked();
+        const { ref } = Child.props.detectPlucked();
 
         return (
           <Div>

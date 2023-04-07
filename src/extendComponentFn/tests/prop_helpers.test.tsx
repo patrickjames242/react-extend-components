@@ -4,12 +4,10 @@ import { extendComponentFn } from '../extendComponentFn';
 describe('plucked props are not passed to the underlying root element', () => {
   test('for root element', () => {
     let propsToPluck: string[];
-    const TestComponent = extendComponentFn('section')(
-      (Section, _, helpers) => {
-        helpers.pluck(...(propsToPluck as any));
-        return <Section />;
-      }
-    );
+    const TestComponent = extendComponentFn('section')((Section) => {
+      Section.props.pluck(...(propsToPluck as any));
+      return <Section />;
+    });
 
     propsToPluck = ['style', 'className'];
     const component = create(
@@ -37,8 +35,8 @@ describe('plucked props are not passed to the underlying root element', () => {
   test('for child element', () => {
     let propsToPluck: string[];
     const TestComponent = extendComponentFn('section', { SomeChild: 'div' })(
-      (Section, { SomeChild }, _, helpers) => {
-        helpers.forChild('SomeChild').pluck(...(propsToPluck as any));
+      (Section, { SomeChild }) => {
+        SomeChild.props.pluck(...(propsToPluck as any));
         return (
           <Section>
             <SomeChild />
@@ -84,8 +82,8 @@ describe('plucked props are returned from the pluck function', () => {
     let propsToPluck: string[] = [];
     const receivePluckedProps = jest.fn();
 
-    const TestComponent = extendComponentFn('input')((Input, _, helpers) => {
-      receivePluckedProps(helpers.pluck(...(propsToPluck as any)));
+    const TestComponent = extendComponentFn('input')((Input) => {
+      receivePluckedProps(Input.props.pluck(...(propsToPluck as any)));
       return <Input />;
     });
 
@@ -121,10 +119,8 @@ describe('plucked props are returned from the pluck function', () => {
     const receivePluckedProps = jest.fn();
 
     const TestComponent = extendComponentFn('p', { myChild: 'span' })(
-      (P, { MyChild }, _, helpers) => {
-        receivePluckedProps(
-          helpers.forChild('myChild').pluck(...(propsToPluck as any))
-        );
+      (P, { MyChild }) => {
+        receivePluckedProps(MyChild.props.pluck(...(propsToPluck as any)));
         return (
           <P>
             <MyChild />
@@ -170,8 +166,8 @@ describe('plucked props are returned from the pluck function', () => {
 });
 
 test('when using pluckAll, no props are passed to the underlying root element', () => {
-  const TestComponent = extendComponentFn('p')((P, _, helpers) => {
-    helpers.pluckAll();
+  const TestComponent = extendComponentFn('p')((P) => {
+    P.props.pluckAll();
     return <P />;
   });
 
@@ -201,9 +197,9 @@ test('Peek returns all props, including those that are plucked', () => {
   let propsToPluck: string[] = [];
   const receivePeekedProps = jest.fn();
 
-  const TestComponent = extendComponentFn('input')((Input, _, helpers) => {
-    helpers.pluck(...(propsToPluck as any));
-    receivePeekedProps(helpers.peek());
+  const TestComponent = extendComponentFn('input')((Input) => {
+    Input.props.pluck(...(propsToPluck as any));
+    receivePeekedProps(Input.props.peek());
     return <Input />;
   });
 
@@ -237,8 +233,8 @@ test('Peek returns all props, including those that are plucked', () => {
 });
 
 test('peeked props are always passed to the underlying element', () => {
-  const TestComponent = extendComponentFn('div')((Div, _, helpers) => {
-    helpers.peek();
+  const TestComponent = extendComponentFn('div')((Div) => {
+    Div.props.peek();
     return <Div />;
   });
 

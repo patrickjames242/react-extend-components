@@ -134,30 +134,30 @@ export interface PropHelpers<Props extends Record<string, any> = any> {
   peek: () => Props;
 }
 
-export interface RootPropHelpers<
-  BaseComponent extends ExtendableComponentType,
-  ChildComponents extends ChildComponentsConstraint,
-  AdditionalProps extends object,
-  RefType extends RefTypeConstraint,
-  BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<BaseComponent>
-> extends PropHelpers<
-    ResultComponentProps<
-      BaseComponent,
-      {},
-      AdditionalProps,
-      RefType,
-      BaseComponentPropsToInclude
-    >
-  > {
-  /**
-   * Returns a helpers object for a child component
-   */
-  forChild: <ChildName extends keyof FilterChildComponents<ChildComponents>>(
-    childName: ChildName
-  ) => PropHelpers<
-    ExtendableComponentProps<FilterChildComponents<ChildComponents>[ChildName]>
-  >;
-}
+// export interface RootPropHelpers<
+//   BaseComponent extends ExtendableComponentType,
+//   ChildComponents extends ChildComponentsConstraint,
+//   AdditionalProps extends object,
+//   RefType extends RefTypeConstraint,
+//   BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<BaseComponent>
+// > extends PropHelpers<
+//     ResultComponentProps<
+//       BaseComponent,
+//       {},
+//       AdditionalProps,
+//       RefType,
+//       BaseComponentPropsToInclude
+//     >
+//   > {
+//   /**
+//    * Returns a helpers object for a child component
+//    */
+//   forChild: <ChildName extends keyof FilterChildComponents<ChildComponents>>(
+//     childName: ChildName
+//   ) => PropHelpers<
+//     ExtendableComponentProps<FilterChildComponents<ChildComponents>[ChildName]>
+//   >;
+// }
 
 export type RenderFn<
   BaseComponent extends ExtendableComponentType,
@@ -167,13 +167,6 @@ export type RenderFn<
 > = (
   RootComponent: RootOrChildComponent<BaseComponent>,
   props: ResultComponentProps<
-    BaseComponent,
-    {},
-    AdditionalProps,
-    RefType,
-    BaseComponentPropsToInclude
-  >,
-  helpers: RootPropHelpers<
     BaseComponent,
     {},
     AdditionalProps,
@@ -201,19 +194,14 @@ export type RenderFnWithChildComponents<
     AdditionalProps,
     RefType,
     BaseComponentPropsToInclude
-  >,
-  helpers: RootPropHelpers<
-    BaseComponent,
-    FilterChildComponents<ChildComponents>,
-    AdditionalProps,
-    RefType,
-    BaseComponentPropsToInclude
   >
 ) => ReactNode;
 
-export type RootOrChildComponent<
-  BaseComponent extends ExtendableComponentType
-> = (props: ExtendableComponentProps<BaseComponent>) => FCReturnType;
+export type RootOrChildComponent<Component extends ExtendableComponentType> = ((
+  props: ExtendableComponentProps<Component>
+) => FCReturnType) & {
+  props: PropHelpers<ExtendableComponentProps<Component>>;
+};
 
 type ChildComponentsAdditionalProps<
   ChildComponents extends ChildComponentsConstraint

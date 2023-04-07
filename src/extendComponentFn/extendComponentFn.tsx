@@ -6,14 +6,10 @@ import {
   ComponentExtenderFnGetter,
   ExtendableComponentType,
   PropsMergeFn,
-  RootPropHelpers,
-  ROOT_COMPONENT_LABEL,
 } from '../types';
-import { getChildComponentPropsNameProp } from './helpers/getChildComponentPropsNameProp';
-import { getPropHelpers } from './helpers/getPropsHelpers';
 import { initializePluckedProps } from './helpers/initializePluckedProps';
 import { useInnerComponents } from './helpers/useInnerComponents';
-import { usePropsGetter } from './helpers/usePropsGetter';
+import { useOuterPropsForInnerComponentGetter } from './helpers/usePropsGetter';
 
 export const extendComponentFn: ComponentExtenderFnGetter = ((
   baseComponent: ExtendableComponentType,
@@ -57,39 +53,31 @@ export const extendComponentFn: ComponentExtenderFnGetter = ((
           defaultPropsMergeFn,
         ].find((x) => x != null) ?? defaultPropsMergeFn;
 
-      const helpers: RootPropHelpers<any, {}, any, any, any> = {
-        ...getPropHelpers({
-          props: outerProps,
-          ref: outerRef,
-          pluckedPropsInfo: getPluckedPropsInfo(ROOT_COMPONENT_LABEL),
-        }),
-        forChild: (childName: string) => {
-          const { ref, ...childProps } =
-            outerProps[getChildComponentPropsNameProp(childName)] ?? {};
-          return getPropHelpers({
-            props: childProps,
-            ref: ref,
-            pluckedPropsInfo: getPluckedPropsInfo(childName),
-          }) as any;
-        },
-      };
-
-      const getProps = usePropsGetter(
-        outerProps,
-        outerRef,
-        childComponentsDeclaration
-      );
-
       const {
         RootComponent,
         ChildComponents,
         InnerComponentsCommunicationContextProvider,
-      } = useInnerComponents(baseComponent, childComponentsDeclaration);
+      } = useInnerComponents(
+        baseComponent,
+        childComponentsDeclaration,
+        outerProps,
+        outerRef,
+        getPluckedPropsInfo
+      );
+
+      const getOuterPropsForInnerComponent =
+        useOuterPropsForInnerComponentGetter(
+          outerProps,
+          outerRef,
+          childComponentsDeclaration
+        );
+
+      const detectPropsObj = RootComponent.props.detectPlucked();
 
       return (
         <InnerComponentsCommunicationContextProvider
           value={{
-            getProps,
+            getOuterProps: getOuterPropsForInnerComponent,
             getPluckedPropsInfo,
             mergeFunction,
           }}
@@ -98,10 +86,9 @@ export const extendComponentFn: ComponentExtenderFnGetter = ((
             ? renderFn(
                 RootComponent as any,
                 ChildComponents as any,
-                helpers.detectPlucked(),
-                helpers
+                detectPropsObj
               )
-            : renderFn(RootComponent as any, helpers.detectPlucked(), helpers)}
+            : renderFn(RootComponent as any, detectPropsObj)}
         </InnerComponentsCommunicationContextProvider>
       );
     };

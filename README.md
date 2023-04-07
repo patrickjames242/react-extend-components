@@ -14,7 +14,7 @@ In essence, it allows you to easily 'extend' a component so that you 'inherit' a
    - [Overriding Base Component Prop Types](#overriding-base-component-prop-types)
 - [Accessing Props](#accessing-props)
    - [The `props` argument](#the-props-argument)
-   - [The `helpers` argument](#the-helpers-argument)
+   - [The `<Component>.props` object](#the-componentprops-object)
 - [Handling Refs](#handling-refs)
 - [Custom Components](#custom-components)
 - [Adding Configurable Child Components](#adding-configurable-child-components)
@@ -513,30 +513,46 @@ const MyComponent2 = extend('div')<{
 });
 
 ```
-### The `helpers` argument
+### The `<Component>.props` object
 
-The third argument provided to you in the render function is a `helpers` object with useful functions you can call as alternatives to utilizing the `props` argument.
-
-### `helpers.peek`
-
-For whatever reason, you might want to have access to all the props that were passed to the component without preventing those props from being passed to the underlying element.
-
-To do this, use the `helpers.peek` function.
+For every root or child component provided to you in the render function, you can access a `props` object via dot notation. This `props` object has useful functions you can call as alternatives to utilizing the `props` parameter in the render function. 
 
 ```tsx
 import { extend } from 'react-extend-components';
 
-const Link = extend('a')((A, _, helpers) => {
-   const { href } = helpers.peek(); // The underlying anchor element will still receive all the passed props (including href), but you can still 'peek' at the value.
+const SideBar = extend('div', {openCloseButton: 'button'})(
+   (Div, {OpenCloseButton}) => {
+
+      const rootPropsHelpers = A.props; 
+      const buttonPropsHelpers = OpenCloseButton.props; 
+
+      return <Div >
+         <OpenCloseButton />
+      </Div>
+   }
+);
+```
+
+### `<Component>.props.peek`
+
+For whatever reason, you might want to have access to all the props that were passed to the component without preventing those props from being passed to the underlying element.
+
+To do this, use the `<Component>.props.peek` function.
+
+```tsx
+import { extend } from 'react-extend-components';
+
+const Link = extend('a')((A) => {
+   const { href } = A.props.peek(); // The underlying anchor element will still receive all the passed props (including href), but you can still 'peek' at the value.
    return <A className="app-link">
       My AwesomeLink
    </A>
 });
 ```
 
-### `helpers.pluck`
+### `<Component>.props.pluck`
 
-In some circumstances you may find the default 'magical' functionality of the `props` argument cumbersome, so the `helpers.pluck` function allows you to explicitly specify the props you want to be hidden from the underlying element and returns only those props in the returned object. 
+In some circumstances you may find the default 'magical' functionality of the `props` parameter cumbersome, so the `<Component>.props.pluck` function allows you to explicitly specify the props you want to be hidden from the underlying element and returns only those props in the returned object. 
 
 Note that the function hides all the props you specify, regardless of whether or not you access them in the resulting object.
 
@@ -546,8 +562,8 @@ import { extend } from 'react-extend-components';
 const Link = extend('a')<{
    myCustomProp1: string;
    myCustomProp2: number;
-}>((A, _, helpers) => {
-   const { myCustomProp1, myCustomProp2 } = helpers.pluck(
+}>((A) => {
+   const { myCustomProp1, myCustomProp2 } = A.props.pluck(
       'myCustomProp1',
       'myCustomProp2'
    ); // myCustomProp1 and myCustomProp2 will be hidden from the anchor element
@@ -557,39 +573,39 @@ const Link = extend('a')<{
 });
 ```
 
-### `helpers.pluckAll`
+### `<Component>.props.pluckAll`
 
 This function hides all props passed to your component from the underlying base component by default, and returns all those props in its object return value. In this case you would have to handle the passing of those props to the component yourself.
 
 ```tsx
 import { extend } from 'react-extend-components';
 
-const Link = extend('a')((A, _, helpers) => {
-   const allProps = helpers.pluckAll(); // Now no props will be passed to the anchor element automatically. We have to pass them ourselves.
+const Link = extend('a')((A) => {
+   const allProps = A.props.pluckAll(); // Now no props will be passed to the anchor element automatically. We have to pass them ourselves.
    return <A {...allProps}>
       My AwesomeLink
    </A>
 });
 ```
 
-### `helpers.detectPlucked`
+### `<Component>.props.detectPlucked`
 
-This function is essentially the same magic behind the `props` argument. It wraps all the props provided to the component in a getter which can detect which one you're accessing within the component and hide it from the base component by default.
+This function is essentially the same magic behind the `props` parameter. It wraps all the props provided to the component in a getter which can detect which one you're accessing within the component and hide it from the base component by default.
 
 ```tsx
 import { extend } from 'react-extend-components';
 
 const Link = extend('a')<{
    myCustomProp: string;
-}>((A, _, helpers) => {
-   const { myCustomProp } = helpers.detectPlucked(); // myCustomProp will be hidden from the anchor element because we're accessing it, but all other props will be passed on normally.
+}>((A) => {
+   const { myCustomProp } = A.props.detectPlucked(); // myCustomProp will be hidden from the anchor element because we're accessing it, but all other props will be passed on normally.
    return <A className="app-link">
       My AwesomeLink
    </A>
 });
 ```
 
-This is actually what `extend` uses under the hood to provide you with the `props` argument.
+This is actually what `extend` uses under the hood to provide you with the `props` parameter.
 
 ## Handling Refs
 
@@ -889,7 +905,7 @@ Here are the arguments provided to you in the merge function.
 | Argument | Description |
 | --- | --- |
 | `innerProps` | The props that were passed to the underlying component / element within the component declaration.
-| `outerProps` | The props that were passed to the outermost component by the users of your component. Only props that were not accessed via the [`props`](#accessing-props) argument or [plucked](#helperspluck) will be provided in this object.
+| `outerProps` | The props that were passed to the outermost component by the users of your component. Only props that were not accessed via the [`props`](#accessing-props) argument or [plucked](#componentpropspluck) will be provided in this object.
 | `label` | The label of the component being merged. This refers either to the label you provided for a child component in the childComponents object, or "root" for the root component.
 | `type` | The type of the component that is provided to React. In the case of HTML elements, it will be the string form of the element, like 'div', 'button' or 'a'. For components it will be the component class or function.
 | `defaultMergeFn` | This is the function the library uses by default to merge your props. You may use this if you'd like to merge specific props but have the library handle the rest.

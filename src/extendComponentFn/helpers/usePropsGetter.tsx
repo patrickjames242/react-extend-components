@@ -3,11 +3,11 @@ import { ChildComponentsConstraint, ROOT_COMPONENT_LABEL } from '../../types';
 import { getChildComponentPropsNameProp } from './getChildComponentPropsNameProp';
 import { InnerComponentsCommunicationContextValue } from './InnerComponentsCommunicationContextValue';
 
-export function usePropsGetter(
+export function useOuterPropsForInnerComponentGetter(
   outerProps: any,
   outerRef: Ref<any>,
   childComponentsDeclaration: ChildComponentsConstraint | undefined
-): InnerComponentsCommunicationContextValue['getProps'] {
+): InnerComponentsCommunicationContextValue['getOuterProps'] {
   return (label) => {
     if (label === ROOT_COMPONENT_LABEL) {
       const outerPropsCopy = { ...outerProps };

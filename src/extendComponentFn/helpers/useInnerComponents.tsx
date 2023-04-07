@@ -1,14 +1,17 @@
-import { createContext, Provider, useMemo } from 'react';
-
+import { createContext, Provider, Ref, useMemo } from 'react';
 import {
   ChildComponentsConstraint,
-  ExtendableComponentProps,
   ExtendableComponentType,
   FilterChildComponents,
+  PropHelpers,
+  RootOrChildComponent,
   ROOT_COMPONENT_LABEL,
 } from '../../types';
 import { capitalizeFirstLetter } from '../../utils/capitalizeFirstLetter';
 import { createInnerComponent } from './createInnerComponent';
+import { getChildComponentPropsNameProp } from './getChildComponentPropsNameProp';
+import { getPropHelpers } from './getPropsHelpers';
+import { PluckedPropInfo } from './initializePluckedProps';
 import { InnerComponentsCommunicationContextValue } from './InnerComponentsCommunicationContextValue';
 
 export function useInnerComponents<
@@ -16,16 +19,37 @@ export function useInnerComponents<
   ChildComponents extends ChildComponentsConstraint
 >(
   baseComponent: BaseComponent,
-  childComponents: ChildComponents | undefined
+  childComponents: ChildComponents | undefined,
+  outerProps: any,
+  outerRef: Ref<any> | undefined,
+  getPluckedPropsInfo: (label: string) => PluckedPropInfo
 ): {
   InnerComponentsCommunicationContextProvider: Provider<InnerComponentsCommunicationContextValue | null>;
-  RootComponent: ExtendableComponentProps<BaseComponent>;
+  RootComponent: RootOrChildComponent<BaseComponent>;
   ChildComponents: {
     [K in keyof FilterChildComponents<ChildComponents> as Capitalize<
       K & string
-    >]: FilterChildComponents<ChildComponents>[K];
+    >]: RootOrChildComponent<FilterChildComponents<ChildComponents>[K]>;
   };
 } {
+  const getPropHelpersForComponent = (label: string): PropHelpers => {
+    if (label === ROOT_COMPONENT_LABEL) {
+      return getPropHelpers({
+        props: outerProps,
+        ref: outerRef,
+        pluckedPropsInfo: getPluckedPropsInfo(ROOT_COMPONENT_LABEL),
+      });
+    } else {
+      const { ref, ...childProps } =
+        outerProps[getChildComponentPropsNameProp(label)] ?? {};
+      return getPropHelpers({
+        props: childProps,
+        ref: ref,
+        pluckedPropsInfo: getPluckedPropsInfo(label),
+      }) as any;
+    }
+  };
+
   const InnerComponentsCommunicationContext = useCreateCommunicationContext();
 
   const RootComponent = useMemo(() => {
@@ -35,6 +59,9 @@ export function useInnerComponents<
       InnerComponentsCommunicationContext
     );
   }, [InnerComponentsCommunicationContext, baseComponent]);
+
+  (RootComponent as any).props =
+    getPropHelpersForComponent(ROOT_COMPONENT_LABEL);
 
   const ChildComponents = useMemo(() => {
     const resultObj: any = {};
@@ -49,6 +76,11 @@ export function useInnerComponents<
     }
     return resultObj;
   }, [InnerComponentsCommunicationContext, childComponents]);
+
+  for (const label in childComponents) {
+    ChildComponents[capitalizeFirstLetter(label)].props =
+      getPropHelpersForComponent(label);
+  }
 
   return useMemo(
     () => ({
