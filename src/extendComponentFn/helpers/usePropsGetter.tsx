@@ -7,23 +7,35 @@ export function useOuterPropsForInnerComponentGetter(
   outerRef: Ref<any>,
   childComponentsDeclaration: ChildComponentsConstraint | undefined
 ): (label: string) => object {
+  // not using useRef/useMemo/useCallback because we want to recalculate on every render since props can change on every render
+
+  const propCache = new Map<string, object>();
+
   return (label) => {
-    if (label === ROOT_COMPONENT_LABEL) {
-      const outerPropsCopy = { ...outerProps };
-      delete outerPropsCopy.ref;
-      if (outerRef) outerPropsCopy.ref = outerRef;
-      if (childComponentsDeclaration) {
-        for (const label in childComponentsDeclaration) {
-          delete outerPropsCopy[getChildComponentPropsNameProp(label)];
+    if (propCache.has(label)) return propCache.get(label);
+
+    const props = (() => {
+      if (label === ROOT_COMPONENT_LABEL) {
+        const outerPropsCopy = { ...outerProps };
+        delete outerPropsCopy.ref;
+        if (outerRef) outerPropsCopy.ref = outerRef;
+        if (childComponentsDeclaration) {
+          for (const label in childComponentsDeclaration) {
+            delete outerPropsCopy[getChildComponentPropsNameProp(label)];
+          }
         }
+        return outerPropsCopy;
+      } else if (label in (childComponentsDeclaration ?? {})) {
+        return outerProps[getChildComponentPropsNameProp(label)] ?? {};
+      } else {
+        throw new Error(
+          `Cannot get props for component with label "${label}".`
+        );
       }
-      return Object.freeze(outerPropsCopy);
-    } else if (label in (childComponentsDeclaration ?? {})) {
-      return Object.freeze(
-        outerProps[getChildComponentPropsNameProp(label)] ?? {}
-      );
-    } else {
-      throw new Error(`Cannot get props for component with label "${label}".`);
-    }
+    })();
+
+    Object.freeze(props);
+    propCache.set(label, props);
+    return props;
   };
 }
