@@ -22,7 +22,6 @@ export type {
   RenderFnWithChildComponents,
   ResultComponentProps,
   RootOrChildComponent,
-  RootPropHelpers,
 } from './types';
 export { mergeRefs } from './utils/mergeRefs';
 export const extend = createCustomComponentExtender();
