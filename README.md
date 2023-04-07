@@ -523,10 +523,10 @@ import { extend } from 'react-extend-components';
 const SideBar = extend('div', {openCloseButton: 'button'})(
    (Div, {OpenCloseButton}) => {
 
-      const rootPropsHelpers = A.props; 
+      const rootPropsHelpers = Div.props; 
       const buttonPropsHelpers = OpenCloseButton.props; 
 
-      return <Div >
+      return <Div>
          <OpenCloseButton />
       </Div>
    }
