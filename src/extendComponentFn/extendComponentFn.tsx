@@ -44,14 +44,22 @@ export const extendComponentFn: ComponentExtenderFnGetter = ((
         childComponentsDeclaration
       );
 
+      const mergeFunctionProviderValue = useContext(
+        MergeFunctionProviderContext
+      );
+
       const mergeFunction =
-        [
-          extenderArgsMergeFn,
-          extenderGetterPropsMergeFn,
-          // eslint-disable-next-line react-hooks/rules-of-hooks
-          useContext(MergeFunctionProviderContext)?.propsMergeFn,
-          defaultPropsMergeFn,
-        ].find((x) => x != null) ?? defaultPropsMergeFn;
+        extenderArgsMergeFn ??
+        extenderGetterPropsMergeFn ??
+        mergeFunctionProviderValue?.propsMergeFn ??
+        defaultPropsMergeFn;
+
+      const getOuterPropsForInnerComponent =
+        useOuterPropsForInnerComponentGetter(
+          outerProps,
+          outerRef,
+          childComponentsDeclaration
+        );
 
       const {
         RootComponent,
@@ -60,17 +68,9 @@ export const extendComponentFn: ComponentExtenderFnGetter = ((
       } = useInnerComponents(
         baseComponent,
         childComponentsDeclaration,
-        outerProps,
-        outerRef,
+        getOuterPropsForInnerComponent,
         getPluckedPropsInfo
       );
-
-      const getOuterPropsForInnerComponent =
-        useOuterPropsForInnerComponentGetter(
-          outerProps,
-          outerRef,
-          childComponentsDeclaration
-        );
 
       const detectPropsObj = RootComponent.props.detectPlucked();
 

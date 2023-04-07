@@ -1,59 +1,43 @@
-import { Ref } from 'react';
 import { PropHelpers } from '../../types';
 import { PluckedPropInfo } from './initializePluckedProps';
 
 export function getPropHelpers({
-  props,
-  ref,
+  outerProps,
   pluckedPropsInfo,
 }: {
-  props: any;
-  ref: Ref<any> | undefined;
+  outerProps: any;
   pluckedPropsInfo: PluckedPropInfo;
 }): PropHelpers<any> {
   const peek: PropHelpers<any>['peek'] = () => {
-    const _props = { ...props };
-    delete props['ref']; // because react annoyingly adds a ref getter and setter to props to remind us not to try to access it there
-    if (ref) _props.ref = ref;
-    return _props;
+    return outerProps;
   };
 
   const pluck: PropHelpers<Record<string, any>>['pluck'] = (...attributes) => {
     return attributes.reduce((acc, attribute) => {
       pluckedPropsInfo.pluckProp(attribute);
-      if (attribute === 'ref') {
-        acc[attribute] = ref;
-      } else {
-        acc[attribute] = (props as any)[attribute];
-      }
+      acc[attribute] = (outerProps as any)[attribute];
       return acc;
     }, {} as any);
   };
 
-  const detectPlucked: PropHelpers<
-    Record<string, any>
-  >['detectPlucked'] = () => {
-    const result: any = {};
-
-    for (const key in props) {
-      if (key === 'ref') continue; // because react annoyingly adds a ref getter and setter to props to remind us not to try to access it there
-      Object.defineProperty(result, key, {
-        get: () => {
-          pluckedPropsInfo.pluckProp(key);
-          return (props as any)[key];
-        },
-      });
-    }
-
-    Object.defineProperty(result, 'ref', {
-      get: () => {
-        pluckedPropsInfo.pluckProp('ref');
-        return ref;
-      },
-    });
-
-    return result;
-  };
+  const detectPlucked: PropHelpers<Record<string, any>>['detectPlucked'] =
+    (() => {
+      // lets cache the result so that subsequent calls to detectPlucked will not have to recompute the result
+      let result: any | null = null;
+      return () => {
+        if (result) return result;
+        result = {};
+        for (const key in outerProps) {
+          Object.defineProperty(result, key, {
+            get: () => {
+              pluckedPropsInfo.pluckProp(key);
+              return (outerProps as any)[key];
+            },
+          });
+        }
+        return result;
+      };
+    })();
 
   const pluckAll: PropHelpers<any>['pluckAll'] = () => {
     pluckedPropsInfo.pluckAllProps();

@@ -1,4 +1,4 @@
-import { createContext, Provider, Ref, useMemo } from 'react';
+import { createContext, Provider, useMemo } from 'react';
 import {
   ChildComponentsConstraint,
   ExtendableComponentType,
@@ -9,7 +9,6 @@ import {
 } from '../../types';
 import { capitalizeFirstLetter } from '../../utils/capitalizeFirstLetter';
 import { createInnerComponent } from './createInnerComponent';
-import { getChildComponentPropsNameProp } from './getChildComponentPropsNameProp';
 import { getPropHelpers } from './getPropsHelpers';
 import { PluckedPropInfo } from './initializePluckedProps';
 import { InnerComponentsCommunicationContextValue } from './InnerComponentsCommunicationContextValue';
@@ -20,8 +19,7 @@ export function useInnerComponents<
 >(
   baseComponent: BaseComponent,
   childComponents: ChildComponents | undefined,
-  outerProps: any,
-  outerRef: Ref<any> | undefined,
+  getOuterProps: (label: string) => object,
   getPluckedPropsInfo: (label: string) => PluckedPropInfo
 ): {
   InnerComponentsCommunicationContextProvider: Provider<InnerComponentsCommunicationContextValue | null>;
@@ -33,21 +31,10 @@ export function useInnerComponents<
   };
 } {
   const getPropHelpersForComponent = (label: string): PropHelpers => {
-    if (label === ROOT_COMPONENT_LABEL) {
-      return getPropHelpers({
-        props: outerProps,
-        ref: outerRef,
-        pluckedPropsInfo: getPluckedPropsInfo(ROOT_COMPONENT_LABEL),
-      });
-    } else {
-      const { ref, ...childProps } =
-        outerProps[getChildComponentPropsNameProp(label)] ?? {};
-      return getPropHelpers({
-        props: childProps,
-        ref: ref,
-        pluckedPropsInfo: getPluckedPropsInfo(label),
-      }) as any;
-    }
+    return getPropHelpers({
+      outerProps: getOuterProps(label),
+      pluckedPropsInfo: getPluckedPropsInfo(label),
+    });
   };
 
   const InnerComponentsCommunicationContext = useCreateCommunicationContext();

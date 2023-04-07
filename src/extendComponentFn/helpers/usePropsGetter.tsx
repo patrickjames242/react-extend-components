@@ -1,13 +1,12 @@
 import { Ref } from 'react';
 import { ChildComponentsConstraint, ROOT_COMPONENT_LABEL } from '../../types';
 import { getChildComponentPropsNameProp } from './getChildComponentPropsNameProp';
-import { InnerComponentsCommunicationContextValue } from './InnerComponentsCommunicationContextValue';
 
 export function useOuterPropsForInnerComponentGetter(
   outerProps: any,
   outerRef: Ref<any>,
   childComponentsDeclaration: ChildComponentsConstraint | undefined
-): InnerComponentsCommunicationContextValue['getOuterProps'] {
+): (label: string) => object {
   return (label) => {
     if (label === ROOT_COMPONENT_LABEL) {
       const outerPropsCopy = { ...outerProps };
@@ -18,9 +17,11 @@ export function useOuterPropsForInnerComponentGetter(
           delete outerPropsCopy[getChildComponentPropsNameProp(label)];
         }
       }
-      return outerPropsCopy;
+      return Object.freeze(outerPropsCopy);
     } else if (label in (childComponentsDeclaration ?? {})) {
-      return outerProps[getChildComponentPropsNameProp(label)] ?? {};
+      return Object.freeze(
+        outerProps[getChildComponentPropsNameProp(label)] ?? {}
+      );
     } else {
       throw new Error(`Cannot get props for component with label "${label}".`);
     }
