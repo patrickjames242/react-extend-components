@@ -22,11 +22,15 @@ export type RefTypeConstraint = any | 'default';
 
 export type BaseComponentPropsToIncludeConstraint<
   BaseComponent extends ExtendableComponentType
-> =
-  | keyof Partial<ExtendableComponentProps<BaseComponent>>
-  | string
-  | number
-  | symbol;
+> = keyof Partial<ExtendableComponentProps<BaseComponent>>;
+
+export type ChildComponentPropsToIncludeConstraint<
+  ChildComponents extends ChildComponentsConstraint
+> = {
+  [Key in keyof FilterChildComponents<ChildComponents>]?: BaseComponentPropsToIncludeConstraint<
+    FilterChildComponents<ChildComponents>[Key]
+  >;
+};
 
 export type ChildComponentsConstraint = Record<string, ExtendableComponentType>;
 
@@ -35,7 +39,8 @@ export const ROOT_COMPONENT_LABEL: ROOT_COMPONENT_LABEL = 'root';
 
 export type FilterChildComponents<
   ChildComponents extends ChildComponentsConstraint
-> = Omit<ChildComponents, ROOT_COMPONENT_LABEL>;
+  // > = Omit<ChildComponents, ROOT_COMPONENT_LABEL>;
+> = ChildComponents;
 
 export type DefaultPropsMergeFn = (info: {
   outerProps: ResultComponentProps<any, any, any, any, any>;
@@ -134,31 +139,6 @@ export interface PropHelpers<Props extends Record<string, any> = any> {
   peek: () => Props;
 }
 
-// export interface RootPropHelpers<
-//   BaseComponent extends ExtendableComponentType,
-//   ChildComponents extends ChildComponentsConstraint,
-//   AdditionalProps extends object,
-//   RefType extends RefTypeConstraint,
-//   BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<BaseComponent>
-// > extends PropHelpers<
-//     ResultComponentProps<
-//       BaseComponent,
-//       {},
-//       AdditionalProps,
-//       RefType,
-//       BaseComponentPropsToInclude
-//     >
-//   > {
-//   /**
-//    * Returns a helpers object for a child component
-//    */
-//   forChild: <ChildName extends keyof FilterChildComponents<ChildComponents>>(
-//     childName: ChildName
-//   ) => PropHelpers<
-//     ExtendableComponentProps<FilterChildComponents<ChildComponents>[ChildName]>
-//   >;
-// }
-
 export type RenderFn<
   BaseComponent extends ExtendableComponentType,
   AdditionalProps extends object,
@@ -180,7 +160,8 @@ export type RenderFnWithChildComponents<
   ChildComponents extends ChildComponentsConstraint,
   AdditionalProps extends object,
   RefType extends RefTypeConstraint,
-  BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<BaseComponent>
+  BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<BaseComponent>,
+  ChildComponentPropsToInclude extends ChildComponentPropsToIncludeConstraint<ChildComponents>
 > = (
   RootComponent: RootOrChildComponent<BaseComponent>,
   childComponents: {
@@ -204,12 +185,19 @@ export type RootOrChildComponent<Component extends ExtendableComponentType> = ((
 };
 
 type ChildComponentsAdditionalProps<
-  ChildComponents extends ChildComponentsConstraint
+  ChildComponents extends ChildComponentsConstraint,
+  ChildComponentPropsToInclude extends ChildComponentPropsToIncludeConstraint<ChildComponents>
 > = {
   [Key in keyof FilterChildComponents<ChildComponents> as `${Uncapitalize<
     Key & string
   >}Props`]?: Partial<
-    ExtendableComponentProps<FilterChildComponents<ChildComponents>[Key]>
+    ChildComponentPropsToInclude[Key] extends undefined
+      ? ExtendableComponentProps<FilterChildComponents<ChildComponents>[Key]>
+      : {
+          [_Key in ChildComponentPropsToInclude[Key]]: ExtendableComponentProps<
+            ChildComponents[_Key]
+          >;
+        }
   >;
 };
 
@@ -218,7 +206,8 @@ export type ResultComponentProps<
   ChildComponents extends ChildComponentsConstraint = {},
   AdditionalProps extends object = {},
   RefType extends RefTypeConstraint = 'default',
-  BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<ExtendableComponentType> = keyof ExtendableComponentProps<BaseComponent>
+  BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<ExtendableComponentType> = keyof ExtendableComponentProps<BaseComponent>,
+  ChildComponentPropsToInclude extends ChildComponentPropsToIncludeConstraint<ChildComponents> = {}
 > = Omit<
   Omit<
     Partial<

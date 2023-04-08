@@ -11,6 +11,8 @@ import { initializePluckedProps } from './helpers/initializePluckedProps';
 import { useInnerComponents } from './helpers/useInnerComponents';
 import { useOuterPropsForInnerComponentGetter } from './helpers/usePropsGetter';
 
+// TODO: allow users to limit the props users can pass to child components, the same way they can with the root component
+
 export const extendComponentFn: ComponentExtenderFnGetter = ((
   baseComponent: ExtendableComponentType,
   childComponentsOrPropsMergeFn?:
