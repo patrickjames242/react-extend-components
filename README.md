@@ -472,7 +472,7 @@ const MyComponent = extend('div')<{
 
    useEffect(() => {
       const value = props.someCustomProp; // ❌ Don't do this! 
-   }, [props.someCustomProp]);
+   }, []);
 
    return <Div></Div>
 });
@@ -496,7 +496,7 @@ const MyComponent = extend('div')<{
 ) => { 
    useEffect(() => {
       const value = someCustomProp; 
-   }, [props.someCustomProp]);
+   }, []);
    return <Div></Div>
 });
 
@@ -508,7 +508,7 @@ const MyComponent2 = extend('div')<{
    const someCustomProp = props.someCustomProp; // ✅ Awesome! we're accessing the prop in the render function so it won't be passed to the underlying element!
    useEffect(() => {
       const value = someCustomProp; 
-   }, [props.someCustomProp]);
+   }, []);
    return <Div></Div>
 });
 
