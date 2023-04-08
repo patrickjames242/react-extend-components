@@ -347,7 +347,7 @@ export const SubmitButton = extend('button')<{
 />
 ```
 
-Here we're destructuring certain props that were provided to the outermost component for use within our component. Whatever props you destructure / access in the props argument will be hidden from the underlying element. This will prevent pesky errors from React as well as prevent unexpected behavior if your prop names conflict with HTML attribute names. (The package uses getters within the props object to figure out which props you're using within your component.)
+Here we're destructuring certain props that were provided to the outermost component for use within our component. Whatever props you destructure / access in the props argument will be hidden from the underlying element. This will prevent pesky errors from React as well as prevent unexpected behavior if your prop names conflict with HTML attribute names. (The package uses [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) for the props object to figure out which props you're using within your component.)
 
 Additionally, the `props` argument doesn't restrict you to properties you've defined yourself. You can access any prop the user passes to the outermost component, even refs!
 
@@ -454,7 +454,7 @@ The reasoning for this is that when you access any prop from the props argument,
 
 The library can't simply pass all the props received to the underlying element because this would mean custom props you've defined would always be passed to the HTML element as an attribute. In most cases this would cause React to complain with an error about invalid HTML attributes, and if your custom prop names clash with HTML attributes, this would result in unwanted / unexpected behavior. So the library has to figure out which props you actually use within the component, then only include them in the resulting component if you explicitly set them. 
 
-This is made possible because the `extend` function doesn't simply pass you the same props object React passes it. It passes you a new object with a getter for every prop the user passed to the component. Whenever you access any prop via dot notation or destructuring, the component makes a note of this and 'hides' those specific props from the underlying element / component (unless you set them explicitly), while passing all the other props down normally.
+This is made possible because the `extend` function doesn't simply pass you the same props object React passes it. It passes you a [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) of the object. And whenever you access any prop via dot notation or destructuring, the component makes a note of this and 'hides' those specific props from the underlying element / component (unless you set them explicitly), while passing all the other props down normally.
 
 In summary, be aware that when you access any prop from the `props` object, you are entirely responsible for making sure that specific prop is passed to the base component / element.
 
@@ -550,6 +550,19 @@ const Link = extend('a')((A) => {
 });
 ```
 
+You can also 'peek' at a single value and have it returned directly.
+
+```tsx
+import { extend } from 'react-extend-components';
+
+const Link = extend('a')((A) => {
+   const href = A.props.peek('href'); // the href is now directly returned from the peek function
+   return <A className="app-link">
+      My AwesomeLink
+   </A>
+});
+```
+
 ### `<Component>.props.pluck`
 
 In some circumstances you may find the default 'magical' functionality of the `props` parameter cumbersome, so the `<Component>.props.pluck` function allows you to explicitly specify the props you want to be hidden from the underlying element and returns only those props in the returned object. 
@@ -573,6 +586,23 @@ const Link = extend('a')<{
 });
 ```
 
+### `<Component>.props.pluckOne`
+
+The `pluckOne` function works the same as the `pluck` function, but only plucks a single value and returns it directly.
+
+```tsx
+import { extend } from 'react-extend-components';
+
+const Link = extend('a')<{
+   myCustomProp: string;
+}>((A) => {
+   const myCustomProp = A.props.pluckOne('myCustomProp'); // myCustomProp is hidden from the anchor element and is returned directly
+   return <A className="app-link">
+      My AwesomeLink
+   </A>
+});
+```
+
 ### `<Component>.props.pluckAll`
 
 This function hides all props passed to your component from the underlying base component by default, and returns all those props in its object return value. In this case you would have to handle the passing of those props to the component yourself.
@@ -590,7 +620,7 @@ const Link = extend('a')((A) => {
 
 ### `<Component>.props.detectPlucked`
 
-This function is essentially the same magic behind the `props` parameter. It wraps all the props provided to the component in a getter which can detect which one you're accessing within the component and hide it from the base component by default.
+This function is essentially the same magic behind the `props` parameter. It returns a [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) for the component's props object which can detect which props you're accessing within the component and hide it from the base component by default.
 
 ```tsx
 import { extend } from 'react-extend-components';
