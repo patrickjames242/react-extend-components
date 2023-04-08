@@ -912,7 +912,7 @@ Here are the arguments provided to you in the merge function.
 
 Because refs are treated like regular props in this library, the `ref` passed to the outermost component will be included in `outerProps` and the `ref` passed to the inner component will be included in `innerProps`. This means the merge function is responsible for ensuring these are merged properly. You may use the `mergeRefs` function exported by this library if you so desire.
 
-Similarly, the merge function is also be responsible for merging the `children` props together.
+Similarly, the merge function would also be responsible for merging the `children` props together.
 
 Note that the merge function will only receive props in the `outerProps` object that were not accessed via the `props` argument or 'plucked' within the component.
 
@@ -942,7 +942,7 @@ const mergeFunction: PropsMergeFn = ({
 
 To set a global merge function for your entire app, add a `MergeFunctionProvider` at the top of your React tree that provides the merge function for all of your extended components.
 
-The `MergeFunctionProvider` only provides a merge function for the components that don't already have a merge function explicitly set.
+The `MergeFunctionProvider` only provides a merge function for the components that don't already have a merge function explicitly set and those that weren't produced with a [custom extend function](#custom-extend-functions).
 
 ```tsx
 import { extend, MergeFunctionProvider } from 'react-extend-components';
