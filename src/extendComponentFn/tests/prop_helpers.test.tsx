@@ -4,6 +4,7 @@ import { extendComponentFn } from '../extendComponentFn';
 describe('plucked props are not passed to the underlying root element', () => {
   test('for root element', () => {
     let propsToPluck: string[];
+
     const TestComponent = extendComponentFn('section')((Section) => {
       Section.props.pluck(...(propsToPluck as any));
       return <Section />;
@@ -77,7 +78,7 @@ describe('plucked props are not passed to the underlying root element', () => {
   });
 });
 
-describe('plucked props are returned from the pluck function', () => {
+describe('when using pluck, plucked props are returned from the pluck function', () => {
   test('for root element', () => {
     let propsToPluck: string[] = [];
     const receivePluckedProps = jest.fn();
@@ -165,6 +166,78 @@ describe('plucked props are returned from the pluck function', () => {
   });
 });
 
+describe('when using pluckOne, the plucked prop is returned from the pluckOne function', () => {
+  test('for root element', () => {
+    let propToPluck: string | undefined = undefined;
+    const receivePluckedProps = jest.fn();
+
+    const TestComponent = extendComponentFn('input')((Input) => {
+      receivePluckedProps(Input.props.pluckOne(propToPluck as any));
+      return <Input />;
+    });
+
+    propToPluck = 'style';
+
+    const component = create(
+      <TestComponent style={{ color: 'red' }} className="patrick" id="blah" />
+    );
+
+    expect(receivePluckedProps).toHaveBeenNthCalledWith(1, { color: 'red' });
+
+    propToPluck = 'id';
+
+    component.update(
+      <TestComponent
+        style={{ backgroundColor: 'green' }}
+        className="patrick123"
+        id="7"
+      />
+    );
+
+    expect(receivePluckedProps).toHaveBeenNthCalledWith(2, '7');
+  });
+
+  test('for child elements', () => {
+    let propToPluck: string | undefined = undefined;
+    const receivePluckedProps = jest.fn();
+
+    const TestComponent = extendComponentFn('div', { child: 'article' })(
+      (Div, { Child }) => {
+        receivePluckedProps(Child.props.pluckOne(propToPluck as any));
+        return <Div />;
+      }
+    );
+
+    propToPluck = 'style';
+
+    const component = create(
+      <TestComponent
+        childProps={{
+          style: { color: 'red' },
+          className: 'patrick',
+          id: 'blah',
+        }}
+      />
+    );
+
+    expect(receivePluckedProps).toHaveBeenNthCalledWith(1, { color: 'red' });
+
+    propToPluck = 'id';
+
+    component.update(
+      <TestComponent
+        childProps={{
+          style: { backgroundColor: 'green' },
+          className: 'patrick123',
+          id: '7',
+        }}
+      />
+    );
+
+    expect(receivePluckedProps).toHaveBeenNthCalledWith(2, '7');
+  });
+});
+
 test('when using pluckAll, no props are passed to the underlying root element', () => {
   const TestComponent = extendComponentFn('p')((P) => {
     P.props.pluckAll();
@@ -193,7 +266,7 @@ test('when using pluckAll, no props are passed to the underlying root element', 
   expect(getProps()).toEqual({});
 });
 
-test('Peek returns all props, including those that are plucked', () => {
+test('peek() returns all props, including those that are plucked', () => {
   let propsToPluck: string[] = [];
   const receivePeekedProps = jest.fn();
 
@@ -232,35 +305,197 @@ test('Peek returns all props, including those that are plucked', () => {
   });
 });
 
-test('peeked props are always passed to the underlying element', () => {
-  const TestComponent = extendComponentFn('div')((Div) => {
-    Div.props.peek();
-    return <Div />;
+describe("peek('prop') returns the given prop, even if it is plucked", () => {
+  test('for root component', () => {
+    let propsToPluck: string[] = [];
+    const receivePeekedProp = jest.fn();
+
+    const TestComponent = extendComponentFn('input')((Input) => {
+      Input.props.pluck(...(propsToPluck as any));
+      receivePeekedProp(Input.props.peek('className'));
+      return <Input />;
+    });
+
+    propsToPluck = ['style', 'className'];
+
+    const component = create(
+      <TestComponent style={{ color: 'red' }} className="patrick" id="blah" />
+    );
+
+    expect(receivePeekedProp).toHaveBeenNthCalledWith(1, 'patrick');
+
+    propsToPluck = ['id', 'style'];
+
+    component.update(
+      <TestComponent
+        style={{ backgroundColor: 'green' }}
+        className="patrick123"
+        id="7"
+      />
+    );
+
+    expect(receivePeekedProp).toHaveBeenNthCalledWith(2, 'patrick123');
   });
 
-  const component = create(
-    <TestComponent style={{ color: 'red' }} className="patrick" id="blah" />
-  );
+  test('for child component', () => {
+    let propsToPluck: string[] = [];
+    const receivePeekedProp = jest.fn();
 
-  const getProps = (): any => component.root.findByType('div').props;
+    const TestComponent = extendComponentFn('div', { Child: 'div' })(
+      (Div, { Child }) => {
+        Child.props.pluck(...(propsToPluck as any));
+        receivePeekedProp(Child.props.peek('className'));
+        return (
+          <Div>
+            <Child />
+          </Div>
+        );
+      }
+    );
 
-  expect(getProps()).toEqual({
-    style: { color: 'red' },
-    className: 'patrick',
-    id: 'blah',
+    propsToPluck = ['style', 'className'];
+
+    const component = create(
+      <TestComponent
+        childProps={{
+          style: { color: 'red' },
+          className: 'patrick',
+          id: 'blah',
+        }}
+      />
+    );
+
+    expect(receivePeekedProp).toHaveBeenNthCalledWith(1, 'patrick');
+
+    propsToPluck = ['id', 'style'];
+
+    component.update(
+      <TestComponent
+        childProps={{
+          style: { backgroundColor: 'green' },
+          className: 'patrick123',
+          id: '7',
+        }}
+      />
+    );
+
+    expect(receivePeekedProp).toHaveBeenNthCalledWith(2, 'patrick123');
+  });
+});
+
+describe('peeked props are always passed to the underlying element', () => {
+  test('when peeking all props', () => {
+    const TestComponent = extendComponentFn('div')((Div) => {
+      Div.props.peek();
+      return <Div />;
+    });
+
+    const component = create(
+      <TestComponent style={{ color: 'red' }} className="patrick" id="blah" />
+    );
+
+    const getProps = (): any => component.root.findByType('div').props;
+
+    expect(getProps()).toEqual({
+      style: { color: 'red' },
+      className: 'patrick',
+      id: 'blah',
+    });
+
+    component.update(
+      <TestComponent
+        style={{ backgroundColor: 'green' }}
+        className="patrick123"
+        id="7"
+      />
+    );
+
+    expect(getProps()).toEqual({
+      style: { backgroundColor: 'green' },
+      className: 'patrick123',
+      id: '7',
+    });
   });
 
-  component.update(
-    <TestComponent
-      style={{ backgroundColor: 'green' }}
-      className="patrick123"
-      id="7"
-    />
-  );
+  describe('when peeking one prop', () => {
+    test('for root component', () => {
+      const TestComponent = extendComponentFn('div')((Div) => {
+        Div.props.peek('className');
+        return <Div />;
+      });
 
-  expect(getProps()).toEqual({
-    style: { backgroundColor: 'green' },
-    className: 'patrick123',
-    id: '7',
+      const component = create(
+        <TestComponent style={{ color: 'red' }} className="patrick" id="blah" />
+      );
+
+      const getProps = (): any => component.root.findByType('div').props;
+
+      expect(getProps()).toEqual({
+        style: { color: 'red' },
+        className: 'patrick',
+        id: 'blah',
+      });
+
+      component.update(
+        <TestComponent
+          style={{ backgroundColor: 'green' }}
+          className="patrick123"
+          id="7"
+        />
+      );
+
+      expect(getProps()).toEqual({
+        style: { backgroundColor: 'green' },
+        className: 'patrick123',
+        id: '7',
+      });
+    });
+
+    test('for child component', () => {
+      const TestComponent = extendComponentFn('div', { someButton: 'button' })(
+        (Div, { SomeButton }) => {
+          Div.props.peek('className');
+          return (
+            <Div>
+              <SomeButton />
+            </Div>
+          );
+        }
+      );
+
+      const component = create(
+        <TestComponent
+          someButtonProps={{
+            style: { color: 'red' },
+            className: 'patrick',
+            id: 'blah',
+          }}
+        />
+      );
+
+      const getProps = (): any => component.root.findByType('button').props;
+
+      expect(getProps()).toEqual({
+        style: { color: 'red' },
+        className: 'patrick',
+        id: 'blah',
+      });
+
+      component.update(
+        <TestComponent
+          someButtonProps={{
+            style: { backgroundColor: 'green' },
+            className: 'patrick123',
+            id: '7',
+          }}
+        />
+      );
+
+      expect(getProps()).toEqual({
+        style: { backgroundColor: 'green' },
+        className: 'patrick123',
+        id: '7',
+      });
+    });
   });
 });

@@ -119,6 +119,13 @@ export interface PropHelpers<Props extends Record<string, any> = any> {
   ) => {
     [Key in Attributes]: Props[Key];
   };
+
+  /**
+   * Allows you to explicitly specify a single prop you want to be hidden
+   * from the underlying element and returns that prop directly.
+   */
+  pluckOne: <Prop extends keyof Props>(prop: Prop) => Props[Prop];
+
   /**
    * Hides all props passed to your component from the underlying
    * component by default, and returns all those props in its
@@ -126,38 +133,22 @@ export interface PropHelpers<Props extends Record<string, any> = any> {
    * passing of those props to the component yourself.
    */
   pluckAll: () => Props;
-  /**
-   * Returns all the props that were passed to the component without
-   * preventing those props from being passed to the underlying
-   * element.
-   */
-  peek: () => Props;
-}
+  peek: {
+    /**
+     * Returns all the props that were passed to the component without
+     * preventing those props from being passed to the underlying
+     * element.
+     */
+    (): Props;
 
-// export interface RootPropHelpers<
-//   BaseComponent extends ExtendableComponentType,
-//   ChildComponents extends ChildComponentsConstraint,
-//   AdditionalProps extends object,
-//   RefType extends RefTypeConstraint,
-//   BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<BaseComponent>
-// > extends PropHelpers<
-//     ResultComponentProps<
-//       BaseComponent,
-//       {},
-//       AdditionalProps,
-//       RefType,
-//       BaseComponentPropsToInclude
-//     >
-//   > {
-//   /**
-//    * Returns a helpers object for a child component
-//    */
-//   forChild: <ChildName extends keyof FilterChildComponents<ChildComponents>>(
-//     childName: ChildName
-//   ) => PropHelpers<
-//     ExtendableComponentProps<FilterChildComponents<ChildComponents>[ChildName]>
-//   >;
-// }
+    /**
+     * Returns a single prop that you specify without
+     * preventing that prop from being passed to the underlying
+     * element.
+     */
+    <Prop extends keyof Props>(prop: Prop): Props[Prop];
+  };
+}
 
 export type RenderFn<
   BaseComponent extends ExtendableComponentType,
