@@ -135,9 +135,10 @@ export type PropsMergeFn<
 export interface PropHelpers<Props extends Record<string, any> = any> {
   /**
    * This function is essentially the same magic behind the `props`
-   * argument. It wraps all the props provided to the component in a
-   * getter which can detect which one you're accessing within the
-   * component and hide it from the underlying element by default.
+   * argument. It wraps the props object in a
+   * [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy)
+   * which can detect which props you're accessing within the component and hide it
+   * from the underlying element by default.
    */
   detectPlucked: () => Props;
   /**
