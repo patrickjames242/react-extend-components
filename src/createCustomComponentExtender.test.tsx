@@ -3,7 +3,11 @@ import { create } from 'react-test-renderer';
 import { createCustomComponentExtender } from './createCustomComponentExtender';
 import { extendComponentFn } from './extendComponentFn/extendComponentFn';
 import { MergeFunctionProvider } from './MergeFunctionProvider';
-import { ComponentExtenderFnGetter, ResultComponentProps } from './types';
+import {
+  ComponentExtenderFn,
+  ExtendedComponentProps,
+  ExtendedComponentWithChildComponents,
+} from './types';
 
 test('merge function in MergeFunctionProvider does not override merge function provided to custom component extender', () => {
   const customExtend = createCustomComponentExtender({
@@ -51,8 +55,8 @@ describe('works the same as the underlying extendComponentFn', () => {
     const customExtend = createCustomComponentExtender();
 
     function createComponentWithExtender(
-      extender: ComponentExtenderFnGetter
-    ): FC<ResultComponentProps<'div'>> {
+      extender: ComponentExtenderFn
+    ): FC<ExtendedComponentProps<'div'>> {
       return extender('div')((Div) => (
         <Div className="Patrick" style={{ color: 'purple' }} />
       ));
@@ -75,8 +79,8 @@ describe('works the same as the underlying extendComponentFn', () => {
     const buttonOnClick = (): void => {};
 
     function createComponentWithExtender(
-      extender: ComponentExtenderFnGetter
-    ): FC<ResultComponentProps<'div', { MyButton: 'button' }>> {
+      extender: ComponentExtenderFn
+    ): ExtendedComponentWithChildComponents<'div', { MyButton: 'button' }> {
       return extender('div', { MyButton: 'button' })((Div, { MyButton }) => (
         <Div className="Patrick" style={{ color: 'purple' }}>
           <MyButton

@@ -8,9 +8,17 @@ import {
 } from 'react';
 import type { allHtmlTags } from './utils/allHtmlTags';
 
+/**
+ * The type constraint of components / elements that can be specified
+ * as base components or child components.
+ */
 export type ExtendableComponentType =
   | keyof JSX.IntrinsicElements
   | JSXElementConstructor<any>;
+
+/**
+ * A helper type that returns the props of an {@link ExtendableComponentType}
+ */
 export type ExtendableComponentProps<
   ComponentType extends ExtendableComponentType
 > = ComponentType extends ElementType
@@ -37,11 +45,20 @@ export type FilterChildComponents<
   ChildComponents extends ChildComponentsConstraint
 > = Omit<ChildComponents, ROOT_COMPONENT_LABEL>;
 
+/**
+ * The type of the merge function that is used to merge props
+ * if you don't specify a merge function yourself.
+ */
 export type DefaultPropsMergeFn = (info: {
-  outerProps: ResultComponentProps<any, any, any, any, any>;
+  outerProps: ExtendedComponentProps<any, any, any, any>;
   innerProps: ExtendableComponentProps<any>;
 }) => ExtendableComponentProps<any>;
 
+/**
+ * The type of the object passed to merge functions that provides
+ * info on the props being merged and the component they are
+ * being merged for.
+ */
 export type PropsMergeFnInfo<
   BaseComponent extends ExtendableComponentType = any,
   ChildComponents extends ChildComponentsConstraint = any,
@@ -65,9 +82,8 @@ export type PropsMergeFnInfo<
    * The props that were passed to the outermost component
    * by the users of your component
    */
-  outerProps: ResultComponentProps<
+  outerProps: ExtendedComponentProps<
     BaseComponent,
-    {},
     AdditionalProps,
     RefType,
     BaseComponentPropsToInclude
@@ -85,6 +101,10 @@ export type PropsMergeFnInfo<
   defaultMergeFn: DefaultPropsMergeFn;
 };
 
+/**
+ * The type of the props merge function that you can provide to the library in
+ * various places.
+ */
 export type PropsMergeFn<
   BaseComponent extends ExtendableComponentType = any,
   ChildComponents extends ChildComponentsConstraint = any,
@@ -101,6 +121,17 @@ export type PropsMergeFn<
   >
 ) => ExtendableComponentProps<BaseComponent>;
 
+/**
+ * The type of the props helpers object that you can access on an inner component
+ * within the render function.
+ *
+ * @example
+ *
+ * const MyComponent = extend('div')(Div => {
+ *  Div.props // <-- this is the props helpers object
+ *  return <Div />
+ * });
+ */
 export interface PropHelpers<Props extends Record<string, any> = any> {
   /**
    * This function is essentially the same magic behind the `props`
@@ -150,6 +181,11 @@ export interface PropHelpers<Props extends Record<string, any> = any> {
   };
 }
 
+/**
+ * The type of the render function that you must provide when calling the `extend`
+ * function
+ */
+
 export type RenderFn<
   BaseComponent extends ExtendableComponentType,
   AdditionalProps extends object,
@@ -157,15 +193,18 @@ export type RenderFn<
   BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<BaseComponent>
 > = (
   RootComponent: RootOrChildComponent<BaseComponent>,
-  props: ResultComponentProps<
+  props: ExtendedComponentProps<
     BaseComponent,
-    {},
     AdditionalProps,
     RefType,
     BaseComponentPropsToInclude
   >
 ) => ReactNode;
 
+/**
+ * The type of the render function that you must provide when calling the `extend`
+ * function when you've specified child components
+ */
 export type RenderFnWithChildComponents<
   BaseComponent extends ExtendableComponentType,
   ChildComponents extends ChildComponentsConstraint,
@@ -179,15 +218,18 @@ export type RenderFnWithChildComponents<
       Key & string
     >}`]: RootOrChildComponent<ChildComponents[Key]>;
   },
-  props: ResultComponentProps<
+  props: ExtendedComponentProps<
     BaseComponent,
-    {},
     AdditionalProps,
     RefType,
     BaseComponentPropsToInclude
   >
 ) => ReactNode;
 
+/**
+ * The type of components that are provided for use within the render function of
+ * the `extend` function. This may be either the root component or a child component.
+ */
 export type RootOrChildComponent<Component extends ExtendableComponentType> = ((
   props: ExtendableComponentProps<Component>
 ) => FCReturnType) & {
@@ -204,9 +246,11 @@ type ChildComponentsAdditionalProps<
   >;
 };
 
-export type ResultComponentProps<
+/**
+ * The type of the resulting component that is returned from the `extend` function
+ */
+export type ExtendedComponentProps<
   BaseComponent extends ExtendableComponentType,
-  ChildComponents extends ChildComponentsConstraint = {},
   AdditionalProps extends object = {},
   RefType extends RefTypeConstraint = 'default',
   BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<ExtendableComponentType> = keyof ExtendableComponentProps<BaseComponent>
@@ -218,17 +262,76 @@ export type ResultComponentProps<
     'children' | keyof AdditionalProps
   > &
     AdditionalProps,
-  | (RefType extends 'default' ? never : 'ref')
-  | keyof ChildComponentsAdditionalProps<ChildComponents>
+  RefType extends 'default' ? never : 'ref'
 > &
-  (RefType extends 'default' ? {} : { ref?: Ref<RefType> }) &
-  ChildComponentsAdditionalProps<ChildComponents>;
+  (RefType extends 'default' ? {} : { ref?: Ref<RefType> });
 
-export type ComponentExtenderFnGetter = {
+/**
+ * The type of the props of the resulting component that is returned from the `extend`
+ * function when child components are specified
+ */
+
+export type ExtendedComponentWithChildComponentsProps<
+  BaseComponent extends ExtendableComponentType,
+  ChildComponents extends ChildComponentsConstraint = {},
+  AdditionalProps extends object = {},
+  RefType extends RefTypeConstraint = 'default',
+  BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<ExtendableComponentType> = keyof ExtendableComponentProps<BaseComponent>
+> = ExtendedComponentProps<
+  BaseComponent,
+  Omit<AdditionalProps, keyof ChildComponentsAdditionalProps<ChildComponents>> &
+    ChildComponentsAdditionalProps<ChildComponents>,
+  RefType,
+  BaseComponentPropsToInclude
+>;
+
+/**
+ * The type of the resulting component that is returned from the `extend` function
+ */
+export type ExtendedComponent<
+  BaseComponent extends ExtendableComponentType,
+  AdditionalProps extends object = {},
+  RefType extends RefTypeConstraint = 'default',
+  BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<ExtendableComponentType> = keyof ExtendableComponentProps<BaseComponent>
+> = FC<
+  ExtendedComponentProps<
+    BaseComponent,
+    AdditionalProps,
+    RefType,
+    BaseComponentPropsToInclude
+  >
+>;
+
+/**
+ * The type of the resulting component that is returned from the `extend` function
+ * when child components are specified
+ */
+export type ExtendedComponentWithChildComponents<
+  BaseComponent extends ExtendableComponentType,
+  ChildComponents extends ChildComponentsConstraint = {},
+  AdditionalProps extends object = {},
+  RefType extends RefTypeConstraint = 'default',
+  BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<ExtendableComponentType> = keyof ExtendableComponentProps<BaseComponent>
+> = FC<
+  ExtendedComponentWithChildComponentsProps<
+    BaseComponent,
+    ChildComponents,
+    AdditionalProps,
+    RefType,
+    BaseComponentPropsToInclude
+  >
+>;
+
+/**
+ * The type of the raw `extend` function (without any of the html element
+ * shortcut functions defined on it)
+ */
+
+export type ComponentExtenderFn = {
   <BaseComponent extends ExtendableComponentType>(
     baseComponent: BaseComponent,
     propsMergeFn?: PropsMergeFn<BaseComponent>
-  ): ComponentExtenderFn<BaseComponent>;
+  ): ComponentExtenderRenderFnProvider<BaseComponent>;
   <
     BaseComponent extends ExtendableComponentType,
     ChildComponents extends ChildComponentsConstraint
@@ -236,42 +339,65 @@ export type ComponentExtenderFnGetter = {
     baseComponent: BaseComponent,
     childComponents: ChildComponents,
     propsMergeFn?: PropsMergeFn<BaseComponent, ChildComponents>
-  ): ComponentExtenderFnWithChildComponents<
+  ): ComponentExtenderWithChildComponentsRenderFnProvider<
     BaseComponent,
     FilterChildComponents<ChildComponents>
   >;
 };
 
-export type ComponentExtenderFn<BaseComponent extends ExtendableComponentType> =
-  <
-    AdditionalProps extends object = {},
-    RefType extends RefTypeConstraint = 'default',
-    BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<BaseComponent> = keyof ExtendableComponentProps<BaseComponent>
-  >(
-    renderFn: RenderFn<
-      BaseComponent,
-      AdditionalProps,
-      RefType,
-      BaseComponentPropsToInclude
-    >,
-    propsMergeFn?: PropsMergeFn<
-      BaseComponent,
-      {},
-      AdditionalProps,
-      RefType,
-      BaseComponentPropsToInclude
-    >
-  ) => FC<
-    ResultComponentProps<
-      BaseComponent,
-      {},
-      AdditionalProps,
-      RefType,
-      BaseComponentPropsToInclude
-    >
-  >;
+/**
+ * The type of the function that the `extend` function returns to you initially.
+ * You must call this function with a render function to receive your final, resulting
+ * component.
+ *
+ * @example
+ *
+ * const MyComponent: ComponentExtenderRenderFnProvider<'div'> = extend('div')
+ *
+ */
+export type ComponentExtenderRenderFnProvider<
+  BaseComponent extends ExtendableComponentType
+> = <
+  AdditionalProps extends object = {},
+  RefType extends RefTypeConstraint = 'default',
+  BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<BaseComponent> = keyof ExtendableComponentProps<BaseComponent>
+>(
+  renderFn: RenderFn<
+    BaseComponent,
+    AdditionalProps,
+    RefType,
+    BaseComponentPropsToInclude
+  >,
+  propsMergeFn?: PropsMergeFn<
+    BaseComponent,
+    {},
+    AdditionalProps,
+    RefType,
+    BaseComponentPropsToInclude
+  >
+) => ExtendedComponent<
+  BaseComponent,
+  AdditionalProps,
+  RefType,
+  BaseComponentPropsToInclude
+>;
 
-export type ComponentExtenderFnWithChildComponents<
+/**
+ * The type of the function that the `extend` function returns to you initially when child components are specified.
+ * You must call this function with a render function to receive your
+ * final, resulting component.
+ *
+ * @example
+ *
+ * const MyComponent:
+ * ComponentExtenderWithChildComponentsRenderFnProvider<
+ *  'div',
+ *  { MyChildComponent: 'div' }
+ * > = extend('div', { MyChildComponent: 'div' })
+ *
+ */
+
+export type ComponentExtenderWithChildComponentsRenderFnProvider<
   BaseComponent extends ExtendableComponentType,
   ChildComponents extends ChildComponentsConstraint
 > = <
@@ -293,24 +419,27 @@ export type ComponentExtenderFnWithChildComponents<
     RefType,
     BaseComponentPropsToInclude
   >
-) => FC<
-  ResultComponentProps<
-    BaseComponent,
-    ChildComponents,
-    AdditionalProps,
-    RefType,
-    BaseComponentPropsToInclude
-  >
+) => ExtendedComponentWithChildComponents<
+  BaseComponent,
+  ChildComponents,
+  AdditionalProps,
+  RefType,
+  BaseComponentPropsToInclude
 >;
 
+/**
+ * The type of the `extend` function, complete with all the html element shortcut
+ * functions defined on it. This is also the type returned from the the
+ * `createCustomComponentExtender` function.
+ */
 export type ComponentExtender<
   AdditionalComponents extends ComponentExtender.AdditionalComponentsConstraint
-> = ComponentExtenderFnGetter & {
-  Fragment: ComponentExtenderFn<typeof Fragment>;
+> = ComponentExtenderFn & {
+  Fragment: ComponentExtenderRenderFnProvider<typeof Fragment>;
 } & {
-  [Tag in (typeof allHtmlTags)[number]]: ComponentExtenderFn<Tag>;
+  [Tag in (typeof allHtmlTags)[number]]: ComponentExtenderRenderFnProvider<Tag>;
 } & {
-  [ComponentKey in keyof AdditionalComponents]: ComponentExtenderFn<
+  [ComponentKey in keyof AdditionalComponents]: ComponentExtenderRenderFnProvider<
     AdditionalComponents[ComponentKey] extends ComponentExtender.AdditionalComponent<
       infer T
     >

@@ -3,7 +3,7 @@ import { defaultPropsMergeFn } from '../defaultPropsMergeFn';
 import { MergeFunctionProviderContext } from '../MergeFunctionProvider';
 import {
   ChildComponentsConstraint,
-  ComponentExtenderFnGetter,
+  ComponentExtenderFn,
   ExtendableComponentType,
   PropsMergeFn,
 } from '../types';
@@ -11,7 +11,7 @@ import { initializePluckedProps } from './helpers/initializePluckedProps';
 import { useInnerComponents } from './helpers/useInnerComponents';
 import { useOuterPropsForInnerComponentGetter } from './helpers/usePropsGetter';
 
-export const extendComponentFn: ComponentExtenderFnGetter = ((
+export const extendComponentFn: ComponentExtenderFn = ((
   baseComponent: ExtendableComponentType,
   childComponentsOrPropsMergeFn?:
     | PropsMergeFn
@@ -19,22 +19,23 @@ export const extendComponentFn: ComponentExtenderFnGetter = ((
     | undefined,
   propsMergeFn?: PropsMergeFn | undefined
 ) => {
-  const { childComponentsDeclaration, extenderGetterPropsMergeFn } = (() => {
-    if (typeof childComponentsOrPropsMergeFn === 'object') {
-      return {
-        childComponentsDeclaration: childComponentsOrPropsMergeFn,
-        extenderGetterPropsMergeFn: propsMergeFn,
-      };
-    } else {
-      return {
-        childComponentsDeclaration: undefined,
-        extenderGetterPropsMergeFn: childComponentsOrPropsMergeFn,
-      };
-    }
-  })();
+  const { childComponentsDeclaration, topLevelExtendFunctionPropsMergeFn } =
+    (() => {
+      if (typeof childComponentsOrPropsMergeFn === 'object') {
+        return {
+          childComponentsDeclaration: childComponentsOrPropsMergeFn,
+          topLevelExtendFunctionPropsMergeFn: propsMergeFn,
+        };
+      } else {
+        return {
+          childComponentsDeclaration: undefined,
+          topLevelExtendFunctionPropsMergeFn: childComponentsOrPropsMergeFn,
+        };
+      }
+    })();
 
   return (renderFn: any, propsMergeFn?: PropsMergeFn<any, any, any, any>) => {
-    const extenderArgsMergeFn = propsMergeFn;
+    const extenderRenderProviderMergeFn = propsMergeFn;
 
     const ReactExtendComponents_ResultComponent: ForwardRefRenderFunction<
       any,
@@ -49,8 +50,8 @@ export const extendComponentFn: ComponentExtenderFnGetter = ((
       );
 
       const mergeFunction =
-        extenderArgsMergeFn ??
-        extenderGetterPropsMergeFn ??
+        extenderRenderProviderMergeFn ??
+        topLevelExtendFunctionPropsMergeFn ??
         mergeFunctionProviderValue?.propsMergeFn ??
         defaultPropsMergeFn;
 

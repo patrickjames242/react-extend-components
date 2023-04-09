@@ -10,17 +10,20 @@ export { ROOT_COMPONENT_LABEL } from './types';
 export type {
   ComponentExtender,
   ComponentExtenderFn,
-  ComponentExtenderFnGetter,
-  ComponentExtenderFnWithChildComponents,
+  ComponentExtenderRenderFnProvider,
+  ComponentExtenderWithChildComponentsRenderFnProvider,
   DefaultPropsMergeFn,
   ExtendableComponentProps,
   ExtendableComponentType,
+  ExtendedComponent,
+  ExtendedComponentProps,
+  ExtendedComponentWithChildComponents,
+  ExtendedComponentWithChildComponentsProps,
   PropHelpers,
   PropsMergeFn,
   PropsMergeFnInfo,
   RenderFn,
   RenderFnWithChildComponents,
-  ResultComponentProps,
   RootOrChildComponent,
 } from './types';
 export { mergeRefs } from './utils/mergeRefs';
