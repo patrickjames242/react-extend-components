@@ -1,6 +1,48 @@
 import { create } from 'react-test-renderer';
 import { extendComponentFn } from '../extendComponentFn';
 
+test("TypeScript allows plucking custom props and the base component's own props", () => {
+  extendComponentFn('div')<{ myProp: string }>((Div) => {
+    Div.props.pluck('myProp').myProp satisfies string;
+    Div.props.pluck('className').className satisfies string | undefined;
+    return <Div />;
+  });
+});
+
+test("TypeScript allows peeking at custom props and the base component's own props", () => {
+  extendComponentFn('div')<{ myProp: string }>((Div) => {
+    Div.props.peek('myProp') satisfies string;
+    Div.props.peek('className') satisfies string | undefined;
+    Div.props.peek().myProp satisfies string;
+    Div.props.peek().className satisfies string | undefined;
+    return <Div />;
+  });
+});
+
+test('TypeScript produces correct type for pluckOne', () => {
+  extendComponentFn('div')<{ myProp: string }>((Div) => {
+    Div.props.pluckOne('myProp') satisfies string;
+    Div.props.pluckOne('className') satisfies string | undefined;
+    return <Div />;
+  });
+});
+
+test('TypeScript produces correct type for pluckAll', () => {
+  extendComponentFn('div')<{ myProp: string }>((Div) => {
+    Div.props.pluckAll().myProp satisfies string;
+    Div.props.pluckAll().className satisfies string | undefined;
+    return <Div />;
+  });
+});
+
+test('TypeScript produces correct type for detectPlucked', () => {
+  extendComponentFn('div')<{ myProp: string }>((Div) => {
+    Div.props.detectPlucked().myProp satisfies string;
+    Div.props.detectPlucked().className satisfies string | undefined;
+    return <Div />;
+  });
+});
+
 describe('plucked props are not passed to the underlying root element', () => {
   test('for root element', () => {
     let propsToPluck: string[];

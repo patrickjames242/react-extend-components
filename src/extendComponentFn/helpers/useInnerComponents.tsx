@@ -3,8 +3,9 @@ import {
   ChildComponentsConstraint,
   ExtendableComponentType,
   FilterChildComponents,
+  InnerChildComponent,
+  InnerRootComponent,
   PropHelpers,
-  RootOrChildComponent,
   ROOT_COMPONENT_LABEL,
 } from '../../types';
 import { capitalizeFirstLetter } from '../../utils/capitalizeFirstLetter';
@@ -23,11 +24,11 @@ export function useInnerComponents<
   getPluckedPropsInfo: (label: string) => PluckedPropInfo
 ): {
   InnerComponentsCommunicationContextProvider: Provider<InnerComponentsCommunicationContextValue | null>;
-  RootComponent: RootOrChildComponent<BaseComponent>;
+  RootComponent: InnerRootComponent<BaseComponent>;
   ChildComponents: {
     [K in keyof FilterChildComponents<ChildComponents> as Capitalize<
       K & string
-    >]: RootOrChildComponent<FilterChildComponents<ChildComponents>[K]>;
+    >]: InnerChildComponent<FilterChildComponents<ChildComponents>[K]>;
   };
 } {
   const getPropHelpersForComponent = (label: string): PropHelpers => {

@@ -1,5 +1,42 @@
 import { render } from '@testing-library/react';
+import { Ref } from 'react';
 import { extendComponentFn } from '../extendComponentFn';
+
+test('TypeScript allows plucking refs inherited from the base component', () => {
+  extendComponentFn('div')((Div) => {
+    Div.props.pluck('ref').ref satisfies Ref<HTMLDivElement> | undefined;
+    return <Div />;
+  });
+});
+
+test('TypeScript allows plucking custom defined refs', () => {
+  type MyCustomRefType = {
+    someMethod: () => void;
+  };
+  extendComponentFn('div')<{}, MyCustomRefType>((Div) => {
+    Div.props.pluck('ref').ref satisfies Ref<MyCustomRefType> | undefined;
+    return <Div />;
+  });
+});
+
+test('Typescript allows peeking at inherited refs', () => {
+  extendComponentFn('div')((Div) => {
+    Div.props.peek('ref') satisfies Ref<HTMLDivElement> | undefined;
+    Div.props.peek().ref satisfies Ref<HTMLDivElement> | undefined;
+    return <Div />;
+  });
+});
+
+test('TypeScript allows peeking at custom defined refs', () => {
+  type MyCustomRefType = {
+    someMethod: () => void;
+  };
+  extendComponentFn('div')<{}, MyCustomRefType>((Div) => {
+    Div.props.peek('ref') satisfies Ref<MyCustomRefType> | undefined;
+    Div.props.peek().ref satisfies Ref<MyCustomRefType> | undefined;
+    return <Div />;
+  });
+});
 
 describe('passes ref to underlying component', () => {
   test('for root component', () => {

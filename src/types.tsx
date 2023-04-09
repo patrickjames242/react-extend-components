@@ -193,7 +193,12 @@ export type RenderFn<
   RefType extends RefTypeConstraint,
   BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<BaseComponent>
 > = (
-  RootComponent: RootOrChildComponent<BaseComponent>,
+  RootComponent: InnerRootComponent<
+    BaseComponent,
+    AdditionalProps,
+    RefType,
+    BaseComponentPropsToInclude
+  >,
   props: ExtendedComponentProps<
     BaseComponent,
     AdditionalProps,
@@ -213,11 +218,16 @@ export type RenderFnWithChildComponents<
   RefType extends RefTypeConstraint,
   BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<BaseComponent>
 > = (
-  RootComponent: RootOrChildComponent<BaseComponent>,
+  RootComponent: InnerRootComponent<
+    BaseComponent,
+    AdditionalProps,
+    RefType,
+    BaseComponentPropsToInclude
+  >,
   childComponents: {
     [Key in keyof FilterChildComponents<ChildComponents> as `${Capitalize<
       Key & string
-    >}`]: RootOrChildComponent<ChildComponents[Key]>;
+    >}`]: InnerChildComponent<ChildComponents[Key]>;
   },
   props: ExtendedComponentProps<
     BaseComponent,
@@ -227,16 +237,44 @@ export type RenderFnWithChildComponents<
   >
 ) => ReactNode;
 
-/**
- * The type of components that are provided for use within the render function of
- * the `extend` function. This may be either the root component or a child component.
- */
-export type RootOrChildComponent<Component extends ExtendableComponentType> = ((
-  props: ExtendableComponentProps<Component>
-) => FCReturnType) & {
-  props: PropHelpers<ExtendableComponentProps<Component>>;
+export type InnerRootOrChildComponent<
+  Component extends ExtendableComponentType,
+  OuterProps extends object
+> = FC<ExtendableComponentProps<Component>> & {
+  props: PropHelpers<OuterProps>;
 };
 
+/**
+ * The type of the root component that is provided for use within the render function of
+ * the `extend` function.
+ */
+export type InnerRootComponent<
+  Component extends ExtendableComponentType,
+  AdditionalProps extends object = {},
+  RefType extends RefTypeConstraint = 'default',
+  BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<ExtendableComponentType> = keyof ExtendableComponentProps<Component>
+> = InnerRootOrChildComponent<
+  Component,
+  ExtendedComponentProps<
+    Component,
+    AdditionalProps,
+    RefType,
+    BaseComponentPropsToInclude
+  >
+>;
+
+/**
+ * The type of a child component that is provided for use within the render function of
+ * the `extend` function.
+ */
+export type InnerChildComponent<Component extends ExtendableComponentType> =
+  InnerRootOrChildComponent<Component, ExtendableComponentProps<Component>>;
+
+/**
+ * The props that should be added to the props of the resulting component
+ * so that the users of the component can pass props to the child components.
+ *
+ */
 type ChildComponentsAdditionalProps<
   ChildComponents extends ChildComponentsConstraint
 > = {

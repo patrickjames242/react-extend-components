@@ -19,12 +19,13 @@ export type {
   ExtendedComponentProps,
   ExtendedComponentWithChildComponents,
   ExtendedComponentWithChildComponentsProps,
+  InnerChildComponent,
+  InnerRootComponent,
   PropHelpers,
   PropsMergeFn,
   PropsMergeFnInfo,
   RenderFn,
   RenderFnWithChildComponents,
-  RootOrChildComponent,
 } from './types';
 export { mergeRefs } from './utils/mergeRefs';
 export const extend = createCustomComponentExtender();
