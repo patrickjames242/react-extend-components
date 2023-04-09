@@ -1,6 +1,6 @@
 {
   "name": "react-extend-components",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "description": "A package that makes it easy to create components that are based on already existing components.",
   "main": "./build/cjs/index.cjs",
   "types": "./build/index.d.ts",
