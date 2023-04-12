@@ -48,7 +48,7 @@ describe('plucked props are not passed to the underlying root element', () => {
     let propsToPluck: string[];
 
     const TestComponent = extendComponentFn('section')((Section) => {
-      Section.props.pluck(...(propsToPluck as any));
+      (Section.props.pluck as any)(...(propsToPluck as any));
       return <Section />;
     });
 
@@ -79,7 +79,7 @@ describe('plucked props are not passed to the underlying root element', () => {
     let propsToPluck: string[];
     const TestComponent = extendComponentFn('section', { SomeChild: 'div' })(
       (Section, { SomeChild }) => {
-        SomeChild.props.pluck(...(propsToPluck as any));
+        (SomeChild.props.pluck as any)(...(propsToPluck as any));
         return (
           <Section>
             <SomeChild />
@@ -126,7 +126,7 @@ describe('when using pluck, plucked props are returned from the pluck function',
     const receivePluckedProps = jest.fn();
 
     const TestComponent = extendComponentFn('input')((Input) => {
-      receivePluckedProps(Input.props.pluck(...(propsToPluck as any)));
+      receivePluckedProps((Input.props.pluck as any)(...(propsToPluck as any)));
       return <Input />;
     });
 
@@ -163,7 +163,9 @@ describe('when using pluck, plucked props are returned from the pluck function',
 
     const TestComponent = extendComponentFn('p', { myChild: 'span' })(
       (P, { MyChild }) => {
-        receivePluckedProps(MyChild.props.pluck(...(propsToPluck as any)));
+        receivePluckedProps(
+          (MyChild.props.pluck as any)(...(propsToPluck as any))
+        );
         return (
           <P>
             <MyChild />
@@ -313,7 +315,7 @@ test('peek() returns all props, including those that are plucked', () => {
   const receivePeekedProps = jest.fn();
 
   const TestComponent = extendComponentFn('input')((Input) => {
-    Input.props.pluck(...(propsToPluck as any));
+    (Input.props.pluck as any)(...(propsToPluck as any));
     receivePeekedProps(Input.props.peek());
     return <Input />;
   });
@@ -353,7 +355,7 @@ describe("peek('prop') returns the given prop, even if it is plucked", () => {
     const receivePeekedProp = jest.fn();
 
     const TestComponent = extendComponentFn('input')((Input) => {
-      Input.props.pluck(...(propsToPluck as any));
+      (Input.props.pluck as any)(...propsToPluck);
       receivePeekedProp(Input.props.peek('className'));
       return <Input />;
     });
@@ -385,7 +387,7 @@ describe("peek('prop') returns the given prop, even if it is plucked", () => {
 
     const TestComponent = extendComponentFn('div', { Child: 'div' })(
       (Div, { Child }) => {
-        Child.props.pluck(...(propsToPluck as any));
+        (Child.props.pluck as any)(...(propsToPluck as any));
         receivePeekedProp(Child.props.peek('className'));
         return (
           <Div>

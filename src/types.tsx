@@ -41,6 +41,8 @@ export type ChildComponentsConstraint = Record<string, ExtendableComponentType>;
 export type ROOT_COMPONENT_LABEL = 'root';
 export const ROOT_COMPONENT_LABEL: ROOT_COMPONENT_LABEL = 'root';
 
+type ArrayWithAtLeastOneElement<E> = [E, ...E[]];
+
 export type FilterChildComponents<
   ChildComponents extends ChildComponentsConstraint
 > = Omit<ChildComponents, ROOT_COMPONENT_LABEL>;
@@ -146,10 +148,23 @@ export interface PropHelpers<Props extends Record<string, any> = any> {
    * from the underlying element and returns only those props in the
    * returned object.
    */
-  pluck: <Attributes extends keyof Props = never>(
-    ...attributes: Attributes[]
-  ) => {
-    [Key in Attributes]: Props[Key];
+  pluck: {
+    <Attributes extends keyof Props = never>(
+      ...attributes: ArrayWithAtLeastOneElement<Attributes>
+    ): {
+      [Key in Attributes]: Props[Key];
+    };
+    <Attributes extends keyof Props = never>(): <
+      AttributeList extends Attributes[]
+    >(
+      ...attributes: AttributeList &
+        ArrayWithAtLeastOneElement<AttributeList[number]> &
+        ([Attributes] extends [AttributeList[number]]
+          ? unknown
+          : "You havn't specified all the values in the union type you provided.")
+    ) => {
+      [Key in AttributeList[number]]: Props[Key];
+    };
   };
 
   /**

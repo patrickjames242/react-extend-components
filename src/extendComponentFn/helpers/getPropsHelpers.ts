@@ -18,13 +18,20 @@ export function getPropHelpers({
     });
   };
 
-  const pluck: PropHelpers<Record<string, any>>['pluck'] = (...attributes) => {
-    return attributes.reduce((acc, attribute) => {
-      pluckedPropsInfo.pluckProp(attribute);
-      acc[attribute] = outerProps[attribute];
-      return acc;
-    }, {} as any);
-  };
+  const pluck: PropHelpers<Record<string, any>>['pluck'] = (() => {
+    const _pluck = (...attributes: any[]): any => {
+      return attributes.reduce((acc, attribute) => {
+        pluckedPropsInfo.pluckProp(attribute);
+        acc[attribute] = outerProps[attribute];
+        return acc;
+      }, {} as any);
+    };
+    return (...attributes) => {
+      if (attributes.length === 0) {
+        return _pluck;
+      } else return _pluck(...attributes);
+    };
+  })();
 
   const pluckOne: PropHelpers<Record<string, any>>['pluckOne'] = (prop) => {
     pluckedPropsInfo.pluckProp(prop);

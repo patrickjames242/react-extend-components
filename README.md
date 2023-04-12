@@ -313,10 +313,9 @@ export function Form(){
    </>
 }
 ```
+The library automatically gives the users of the component access to the all the props of the underlying component and merges those with the props provided within the component.
 
-Here, we can add a ref to the button inside the component as well as outside the component without having to worry about forwarding the ref or merging the two refs together. 
-
-Also, the library automatically gives the users of the component access to the all the props of the underlying component and merges those with the props provided within the component.
+Also, we can add a ref to the button inside the component as well as outside the component without having to worry about forwarding the ref or merging the two refs together. 
 
 ## Customizing Props
 
@@ -326,16 +325,25 @@ When we 'extend' the props of another component, most times we would also want t
 import { extend } from 'react-extend-components';
 import { ComponentType } from 'react';
 
-export const SubmitButton = extend('button')<{
+export const SubmitButton = extend('button')
+/**
+ * First, specify the type of your custom props as the first generic parameter
+ * of the second function call
+ */
+<{
    buttonTitle: string;
    Icon?: ComponentType<{className?: string}>
-}>((Button, { buttonTitle, Icon }) => {
-
+}>
+/**
+ * Then, destructure those custom props from the second parameter of the render
+ * function
+ */ 
+((Button, { buttonTitle, Icon }) => {
    return <Button className="submit-button">
+      {/* Now you can use the props in your component! */}
       { buttonTitle ?? 'Submit' }
       <Icon className="submit-button-icon">
    </Button>
-
 });
 
 <SubmitButton
@@ -454,7 +462,7 @@ The reasoning for this is that when you access any prop from the props argument,
 
 The library can't simply pass all the props received to the underlying element because this would mean custom props you've defined would always be passed to the HTML element as an attribute. In most cases this would cause React to complain with an error about invalid HTML attributes, and if your custom prop names clash with HTML attributes, this would result in unwanted / unexpected behavior. So the library has to figure out which props you actually use within the component, then only include them in the resulting component if you explicitly set them. 
 
-This is made possible because the `extend` function doesn't simply pass you the same props object React passes it. It passes you a [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) of the object. And whenever you access any prop via dot notation or destructuring, the component makes a note of this and 'hides' those specific props from the underlying element / component (unless you set them explicitly), while passing all the other props down normally.
+This is made possible because the `extend` function doesn't simply pass you the same props object React passes it. It passes you a [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) of the props object. And whenever you access any prop via dot notation or destructuring, the component makes a note of this and 'hides' those specific props from the underlying element / component (unless you set them explicitly), while passing all the other props down normally.
 
 In summary, be aware that when you access any prop from the `props` object, you are entirely responsible for making sure that specific prop is passed to the base component / element.
 
