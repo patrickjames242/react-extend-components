@@ -19,8 +19,8 @@ export function createInnerComponent<Component extends ExtendableComponentType>(
     any,
     ExtendableComponentProps<Component>
   > = (innerProps, innerRef) => {
-    const rootComponentCommunicationContext = useContext(communicationContext);
-    if (!rootComponentCommunicationContext) {
+    const communicationContextValue = useContext(communicationContext);
+    if (!communicationContextValue) {
       throw new Error(
         "You cannot use the root or child component of an extended component outside it's render function."
       );
@@ -29,7 +29,7 @@ export function createInnerComponent<Component extends ExtendableComponentType>(
       getOuterProps: getProps,
       getPluckedPropsInfo,
       mergeFunction,
-    } = rootComponentCommunicationContext!;
+    } = communicationContextValue!;
 
     const outerProps = getProps(componentLabel);
     const pluckedProps = getPluckedPropsInfo(componentLabel);

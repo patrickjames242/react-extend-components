@@ -301,7 +301,7 @@ type ChildComponentsAdditionalProps<
 };
 
 /**
- * The type of the resulting component that is returned from the `extend` function
+ * The type of the props of the resulting component that is returned from the `extend` function
  */
 export type ExtendedComponentProps<
   BaseComponent extends ExtendableComponentType,
