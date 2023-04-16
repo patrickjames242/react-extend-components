@@ -10,6 +10,7 @@ import {
   ExtendableComponentProps,
   ExtendableComponentType,
 } from '../../../types';
+import { capitalizeFirstLetter } from '../../../utils/capitalizeFirstLetter';
 import { forEachExtendableComponentChild } from '../../../utils/forEachExtendableComponentChild';
 import { InnerComponentsCommunicationContextValue } from '../InnerComponentsCommunicationContextValue';
 import { setAtPath } from './getAndSetAtPath';
@@ -18,7 +19,8 @@ import { getPropsMerger } from './getPropsMerger';
 export function createInnerComponent<Component extends ExtendableComponentType>(
   component: Component,
   componentLabel: string,
-  communicationContext: Context<InnerComponentsCommunicationContextValue | null>
+  communicationContext: Context<InnerComponentsCommunicationContextValue | null>,
+  resultingComponentDisplayName: string | undefined
 ): ComponentType<ExtendableComponentProps<Component>> {
   const ReactExtendComponents_RootOrChildComponent: ForwardRefRenderFunction<
     any,
@@ -65,5 +67,16 @@ export function createInnerComponent<Component extends ExtendableComponentType>(
     return createElement(component, rootProps);
   };
 
-  return forwardRef(ReactExtendComponents_RootOrChildComponent);
+  const resultingComponent = forwardRef(
+    ReactExtendComponents_RootOrChildComponent
+  );
+
+  if (resultingComponentDisplayName != null) {
+    resultingComponent.displayName =
+      resultingComponentDisplayName +
+      '.' +
+      capitalizeFirstLetter(componentLabel);
+  }
+
+  return resultingComponent;
 }

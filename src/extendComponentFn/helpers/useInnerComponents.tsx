@@ -21,7 +21,8 @@ export function useInnerComponents<
   baseComponent: BaseComponent,
   childComponents: ChildComponents | undefined,
   getOuterProps: (label: string) => object,
-  getPluckedPropsInfo: (label: string) => PluckedPropInfo
+  getPluckedPropsInfo: (label: string) => PluckedPropInfo,
+  resultingComponentDisplayName: string | undefined
 ): {
   InnerComponentsCommunicationContextProvider: Provider<InnerComponentsCommunicationContextValue | null>;
   RootComponent: InnerRootComponent<BaseComponent>;
@@ -38,15 +39,19 @@ export function useInnerComponents<
     });
   };
 
-  const InnerComponentsCommunicationContext = useCreateCommunicationContext();
+  const InnerComponentsCommunicationContext = useCreateCommunicationContext(
+    resultingComponentDisplayName
+  );
 
   const RootComponent = useMemo(() => {
     return createInnerComponent(
       baseComponent,
       ROOT_COMPONENT_LABEL,
-      InnerComponentsCommunicationContext
+      InnerComponentsCommunicationContext,
+      resultingComponentDisplayName
     );
-  }, [InnerComponentsCommunicationContext, baseComponent]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [InnerComponentsCommunicationContext]);
 
   (RootComponent as any).props =
     getPropHelpersForComponent(ROOT_COMPONENT_LABEL);
@@ -58,12 +63,14 @@ export function useInnerComponents<
         resultObj[capitalizeFirstLetter(key)] = createInnerComponent(
           childComponents[key]!,
           key,
-          InnerComponentsCommunicationContext
+          InnerComponentsCommunicationContext,
+          resultingComponentDisplayName
         );
       }
     }
     return resultObj;
-  }, [InnerComponentsCommunicationContext, childComponents]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [InnerComponentsCommunicationContext]);
 
   for (const label in childComponents) {
     ChildComponents[capitalizeFirstLetter(label)].props =
@@ -85,14 +92,24 @@ export function useInnerComponents<
   );
 }
 
-function useCreateCommunicationContext(): React.Context<InnerComponentsCommunicationContextValue | null> {
+function useCreateCommunicationContext(
+  resultingComponentDisplayName: string | undefined
+): React.Context<InnerComponentsCommunicationContextValue | null> {
   return useMemo(() => {
     const context =
       createContext<InnerComponentsCommunicationContextValue | null>(null);
-    context.displayName =
-      'ReactExtendComponents_InnerComponentsCommunicationContext_' +
-      getUniqueNumber();
+    if (resultingComponentDisplayName == null) {
+      context.displayName =
+        'ReactExtendComponents_InnerComponentsCommunicationContext_' +
+        getUniqueNumber();
+    } else {
+      context.displayName =
+        resultingComponentDisplayName +
+        '.' +
+        'InnerComponentsCommunicationContext';
+    }
     return context;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 }
 
