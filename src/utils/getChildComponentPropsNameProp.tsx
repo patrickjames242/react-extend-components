@@ -1,4 +1,4 @@
-import { uncapitalizeFirstLetter } from '../../utils/uncapitalizeFirstLetter';
+import { uncapitalizeFirstLetter } from './uncapitalizeFirstLetter';
 
 export function getChildComponentPropsNameProp<ComponentLabel extends string>(
   componentLabel: ComponentLabel

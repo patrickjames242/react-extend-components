@@ -9,7 +9,7 @@ import {
   ROOT_COMPONENT_LABEL,
 } from '../../types';
 import { capitalizeFirstLetter } from '../../utils/capitalizeFirstLetter';
-import { createInnerComponent } from './createInnerComponent';
+import { createInnerComponent } from './createInnerComponent/createInnerComponent';
 import { getPropHelpers } from './getPropsHelpers';
 import { PluckedPropInfo } from './initializePluckedProps';
 import { InnerComponentsCommunicationContextValue } from './InnerComponentsCommunicationContextValue';

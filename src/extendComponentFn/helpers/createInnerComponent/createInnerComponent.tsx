@@ -6,9 +6,14 @@ import {
   ForwardRefRenderFunction,
   useContext,
 } from 'react';
-import { defaultPropsMergeFn } from '../../defaultPropsMergeFn';
-import { ExtendableComponentProps, ExtendableComponentType } from '../../types';
-import { InnerComponentsCommunicationContextValue } from './InnerComponentsCommunicationContextValue';
+import {
+  ExtendableComponentProps,
+  ExtendableComponentType,
+} from '../../../types';
+import { forEachExtendableComponentChild } from '../../../utils/forEachExtendableComponentChild';
+import { InnerComponentsCommunicationContextValue } from '../InnerComponentsCommunicationContextValue';
+import { setAtPath } from './getAndSetAtPath';
+import { getPropsMerger } from './getPropsMerger';
 
 export function createInnerComponent<Component extends ExtendableComponentType>(
   component: Component,
@@ -31,7 +36,7 @@ export function createInnerComponent<Component extends ExtendableComponentType>(
       mergeFunction,
     } = communicationContextValue!;
 
-    const outerProps = getProps(componentLabel);
+    const rootOuterProps = getProps(componentLabel);
     const pluckedProps = getPluckedPropsInfo(componentLabel);
 
     if (pluckedProps == null) {
@@ -40,33 +45,24 @@ export function createInnerComponent<Component extends ExtendableComponentType>(
       );
     }
 
-    const preparedOuterProps = (() => {
-      if (pluckedProps.areAllPropsPlucked()) return {};
-      const outer: any = {
-        ...outerProps,
-      };
-      for (const key of pluckedProps.getAllPluckedProps()) {
-        delete outer[key];
-      }
-      return outer;
-    })();
-
-    const preparedInnerProps = (() => {
-      const inner: any = { ...innerProps };
-      delete inner.ref; // because react annoyingly adds a ref getter and setter to props that throws errors to remind us not to try to access it there
-      innerRef && (inner.ref = innerRef);
-      return inner;
-    })();
-
-    const mergedProps = mergeFunction({
-      innerProps: preparedInnerProps,
-      outerProps: preparedOuterProps,
-      defaultMergeFn: defaultPropsMergeFn,
-      label: componentLabel,
-      type: component,
+    const getMergedPropsObjAtPath = getPropsMerger({
+      underlyingComponent: component,
+      pluckedProps,
+      rootOuterProps,
+      innerProps,
+      innerRef,
+      mergeFunction,
+      componentLabel,
     });
 
-    return createElement(component, mergedProps);
+    const rootProps = getMergedPropsObjAtPath([], component);
+
+    forEachExtendableComponentChild(component, (child) => {
+      const mergedProps = getMergedPropsObjAtPath(child.propPath, child.type);
+      setAtPath(rootProps, child.propPath, mergedProps);
+    });
+
+    return createElement(component, rootProps);
   };
 
   return forwardRef(ReactExtendComponents_RootOrChildComponent);

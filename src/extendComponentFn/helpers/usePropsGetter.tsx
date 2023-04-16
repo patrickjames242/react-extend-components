@@ -1,6 +1,6 @@
 import { Ref } from 'react';
 import { ChildComponentsConstraint, ROOT_COMPONENT_LABEL } from '../../types';
-import { getChildComponentPropsNameProp } from './getChildComponentPropsNameProp';
+import { getChildComponentPropsNameProp } from '../../utils/getChildComponentPropsNameProp';
 
 export function useOuterPropsForInnerComponentGetter(
   outerProps: any,

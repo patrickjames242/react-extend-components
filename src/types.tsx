@@ -9,12 +9,66 @@ import {
 import type { allHtmlTags } from './utils/allHtmlTags';
 
 /**
+ * Use this symbol to add info to a component that is used as a base component
+ * or child component in the `extend` function.
+ */
+export const EXTENDABLE_COMPONENT_INFO = Symbol('EXTENDABLE_COMPONENT_INFO');
+export type EXTENDABLE_COMPONENT_INFO = typeof EXTENDABLE_COMPONENT_INFO;
+
+/**
+ * Used to specify the path to a particular prop in a props object.
+ * Specify a string if the prop is at the root of the props object,
+ * and an array if the prop is nested.
+ */
+export type PropPath = string | string[];
+
+export type ExtendableComponentInfo = {
+  /**
+   * A list of props for this component that should be treated
+   * as props for a separate component. The merge function
+   * will be called separately for each of these props, with the
+   * type value you can optionally specify.
+   */
+  childComponents?: ExtendableComponentInfo.ChildComponent[];
+};
+
+export namespace ExtendableComponentInfo {
+  export type ChildComponent = {
+    /**
+     * The prop or path of the prop for the child component.
+     * Specify a string if the prop is at the root of the props object,
+     * and an array if the prop is nested. For example, if you have a prop
+     * called "foo" that is an object with a prop called "bar", and bar is
+     * the prop for your child component, you would specify the path
+     * as ["foo", "bar"].
+     */
+    propPath: PropPath;
+    /**
+     * The type of the child component. This value is what is provided to the
+     * merge function.
+     */
+    type?: ElementType;
+  };
+}
+
+export type CanHaveExtendableComponentInfo = {
+  /**
+   * Use this attribute to add info to a component that is used as a base component
+   * or child component in the `extend` function.
+   */
+  [EXTENDABLE_COMPONENT_INFO]?: ExtendableComponentInfo;
+};
+
+export type WithExtendableComponentInfo<T> = T & CanHaveExtendableComponentInfo;
+export type ExtendableComponentFC<P = {}> = WithExtendableComponentInfo<FC<P>>;
+
+/**
  * The type constraint of components / elements that can be specified
  * as base components or child components.
  */
 export type ExtendableComponentType =
   | keyof JSX.IntrinsicElements
-  | JSXElementConstructor<any>;
+  | WithExtendableComponentInfo<JSXElementConstructor<any>>;
 
 /**
  * A helper type that returns the props of an {@link ExtendableComponentType}
@@ -77,7 +131,8 @@ export type PropsMergeFnInfo<
   /**
    * The label of the component being merged.
    * This refers either to the label you provided for a child
-   * component in the childComponents object, or "root" for the root component
+   * component in the childComponents object, or "root" for the root component.
+   *
    */
   label: ROOT_COMPONENT_LABEL | keyof FilterChildComponents<ChildComponents>;
   /**
@@ -347,7 +402,7 @@ export type ExtendedComponent<
   AdditionalProps extends object = {},
   RefType extends RefTypeConstraint = 'default',
   BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<ExtendableComponentType> = keyof ExtendableComponentProps<BaseComponent>
-> = FC<
+> = ExtendableComponentFC<
   ExtendedComponentProps<
     BaseComponent,
     AdditionalProps,
@@ -366,7 +421,7 @@ export type ExtendedComponentWithChildComponents<
   AdditionalProps extends object = {},
   RefType extends RefTypeConstraint = 'default',
   BaseComponentPropsToInclude extends BaseComponentPropsToIncludeConstraint<ExtendableComponentType> = keyof ExtendableComponentProps<BaseComponent>
-> = FC<
+> = ExtendableComponentFC<
   ExtendedComponentWithChildComponentsProps<
     BaseComponent,
     ChildComponents,

@@ -2,14 +2,23 @@ import { forwardRef, ForwardRefRenderFunction, useContext } from 'react';
 import { defaultPropsMergeFn } from '../defaultPropsMergeFn';
 import { MergeFunctionProviderContext } from '../MergeFunctionProvider';
 import {
+  CanHaveExtendableComponentInfo,
   ChildComponentsConstraint,
   ComponentExtenderFn,
+  ExtendableComponentInfo,
   ExtendableComponentType,
+  EXTENDABLE_COMPONENT_INFO,
+  PropPath,
   PropsMergeFn,
 } from '../types';
+import { forEachExtendableComponentChild } from '../utils/forEachExtendableComponentChild';
+import { getChildComponentPropsNameProp } from '../utils/getChildComponentPropsNameProp';
+import { normalizePropPath } from '../utils/normalizePropPath';
 import { initializePluckedProps } from './helpers/initializePluckedProps';
 import { useInnerComponents } from './helpers/useInnerComponents';
 import { useOuterPropsForInnerComponentGetter } from './helpers/usePropsGetter';
+
+///TODO: add display name param to extendComponentFn
 
 export const extendComponentFn: ComponentExtenderFn = ((
   baseComponent: ExtendableComponentType,
@@ -93,6 +102,43 @@ export const extendComponentFn: ComponentExtenderFn = ((
         </InnerComponentsCommunicationContextProvider>
       );
     };
-    return forwardRef(ReactExtendComponents_ResultComponent) as any;
+    const resultComponent = forwardRef(
+      ReactExtendComponents_ResultComponent
+    ) as CanHaveExtendableComponentInfo;
+
+    const childComponentPropInfoObjs = (() => {
+      const result: ExtendableComponentInfo.ChildComponent[] = [];
+      function appendChildComponentInfoFromComponent(
+        component: ExtendableComponentType,
+        currentPath: PropPath
+      ): void {
+        forEachExtendableComponentChild(component, (child) => {
+          result.push({
+            ...child,
+            propPath: [
+              ...normalizePropPath(currentPath),
+              ...normalizePropPath(child.propPath),
+            ],
+          });
+        });
+      }
+      appendChildComponentInfoFromComponent(baseComponent, []);
+      for (const child in childComponentsDeclaration) {
+        appendChildComponentInfoFromComponent(
+          childComponentsDeclaration[child]!,
+          getChildComponentPropsNameProp(child)
+        );
+        result.push({
+          propPath: getChildComponentPropsNameProp(child),
+          type: childComponentsDeclaration[child]!,
+        });
+      }
+      return result;
+    })();
+
+    resultComponent[EXTENDABLE_COMPONENT_INFO] = {
+      childComponents: childComponentPropInfoObjs,
+    };
+    return resultComponent;
   };
 }) as any;
