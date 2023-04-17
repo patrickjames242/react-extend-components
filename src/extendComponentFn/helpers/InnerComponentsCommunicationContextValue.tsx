@@ -1,7 +1,7 @@
 import { PropsMergeFn, ROOT_COMPONENT_LABEL } from '../../types';
 import { PluckedPropInfo } from './initializePluckedProps';
 
-export interface InnerComponentsCommunicationContextValue {
+export interface InnerComponentsCommunicationValue {
   getPluckedPropsInfo: (label: string) => PluckedPropInfo;
   getOuterProps: (label: ROOT_COMPONENT_LABEL | string) => object;
   /**

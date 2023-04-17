@@ -8,9 +8,11 @@ import {
   PropsMergeFn,
 } from '../types';
 import { initializePluckedProps } from './helpers/initializePluckedProps';
+import { InnerComponentsCommunicationValue } from './helpers/InnerComponentsCommunicationContextValue';
 import { setExtendableComponentInfoOnResultingComponent } from './helpers/setExtendableComponentInfoOnResultingComponent';
 import { useInnerComponents } from './helpers/useInnerComponents';
 import { useOuterPropsForInnerComponentGetter } from './helpers/usePropsGetter';
+import { useCreateValueObservable } from './helpers/ValueObservable';
 
 export const extendComponentFn: ComponentExtenderFn = ((
   baseComponent: ExtendableComponentType,
@@ -63,37 +65,27 @@ export const extendComponentFn: ComponentExtenderFn = ((
           childComponentsDeclaration
         );
 
-      const {
-        RootComponent,
-        ChildComponents,
-        InnerComponentsCommunicationContextProvider,
-      } = useInnerComponents(
+      const innerComponentsCommunicationObservable =
+        useCreateValueObservable<InnerComponentsCommunicationValue>({
+          getOuterProps: getOuterPropsForInnerComponent,
+          getPluckedPropsInfo,
+          mergeFunction,
+        });
+
+      const { RootComponent, ChildComponents } = useInnerComponents(
         baseComponent,
         childComponentsDeclaration,
         getOuterPropsForInnerComponent,
         getPluckedPropsInfo,
-        resultComponent.displayName
+        resultComponent.displayName,
+        innerComponentsCommunicationObservable
       );
 
       const detectPropsObj = RootComponent.props.detectPlucked();
 
-      return (
-        <InnerComponentsCommunicationContextProvider
-          value={{
-            getOuterProps: getOuterPropsForInnerComponent,
-            getPluckedPropsInfo,
-            mergeFunction,
-          }}
-        >
-          {childComponentsDeclaration
-            ? renderFn(
-                RootComponent as any,
-                ChildComponents as any,
-                detectPropsObj
-              )
-            : renderFn(RootComponent as any, detectPropsObj)}
-        </InnerComponentsCommunicationContextProvider>
-      );
+      return childComponentsDeclaration
+        ? renderFn(RootComponent as any, ChildComponents as any, detectPropsObj)
+        : renderFn(RootComponent as any, detectPropsObj);
     };
     const resultComponent = forwardRef(ReactExtendComponents_ResultComponent);
 

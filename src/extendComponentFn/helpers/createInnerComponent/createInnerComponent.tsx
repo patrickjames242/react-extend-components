@@ -1,10 +1,8 @@
 import {
   ComponentType,
-  Context,
   createElement,
   forwardRef,
   ForwardRefRenderFunction,
-  useContext,
 } from 'react';
 import {
   ExtendableComponentProps,
@@ -12,31 +10,26 @@ import {
 } from '../../../types';
 import { capitalizeFirstLetter } from '../../../utils/capitalizeFirstLetter';
 import { forEachExtendableComponentChild } from '../../../utils/forEachExtendableComponentChild';
-import { InnerComponentsCommunicationContextValue } from '../InnerComponentsCommunicationContextValue';
+import { InnerComponentsCommunicationValue } from '../InnerComponentsCommunicationContextValue';
+import { useConsumeObservableValue, ValueObservable } from '../ValueObservable';
 import { setAtPath } from './getAndSetAtPath';
 import { getPropsMerger } from './getPropsMerger';
 
 export function createInnerComponent<Component extends ExtendableComponentType>(
   component: Component,
   componentLabel: string,
-  communicationContext: Context<InnerComponentsCommunicationContextValue | null>,
+  communicationObservable: ValueObservable<InnerComponentsCommunicationValue>,
   resultingComponentDisplayName: string | undefined
 ): ComponentType<ExtendableComponentProps<Component>> {
   const ReactExtendComponents_RootOrChildComponent: ForwardRefRenderFunction<
     any,
     ExtendableComponentProps<Component>
   > = (innerProps, innerRef) => {
-    const communicationContextValue = useContext(communicationContext);
-    if (!communicationContextValue) {
-      throw new Error(
-        "You cannot use the root or child component of an extended component outside it's render function."
-      );
-    }
     const {
       getOuterProps: getProps,
       getPluckedPropsInfo,
       mergeFunction,
-    } = communicationContextValue!;
+    } = useConsumeObservableValue(communicationObservable);
 
     const rootOuterProps = getProps(componentLabel);
     const pluckedProps = getPluckedPropsInfo(componentLabel);
