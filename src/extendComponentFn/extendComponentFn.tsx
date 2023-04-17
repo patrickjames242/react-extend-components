@@ -1,4 +1,4 @@
-import { forwardRef, ForwardRefRenderFunction, useContext } from 'react';
+import { ForwardRefRenderFunction, useContext } from 'react';
 import { defaultPropsMergeFn } from '../defaultPropsMergeFn';
 import { MergeFunctionProviderContext } from '../MergeFunctionProvider';
 import {
@@ -7,6 +7,7 @@ import {
   ExtendableComponentType,
   PropsMergeFn,
 } from '../types';
+import { forwardRefAndDisplayName } from '../utils/forwardRefAndDisplayName';
 import { initializePluckedProps } from './helpers/initializePluckedProps';
 import { InnerComponentsCommunicationValue } from './helpers/InnerComponentsCommunicationContextValue';
 import { setExtendableComponentInfoOnResultingComponent } from './helpers/setExtendableComponentInfoOnResultingComponent';
@@ -87,7 +88,10 @@ export const extendComponentFn: ComponentExtenderFn = ((
         ? renderFn(RootComponent as any, ChildComponents as any, detectPropsObj)
         : renderFn(RootComponent as any, detectPropsObj);
     };
-    const resultComponent = forwardRef(ReactExtendComponents_ResultComponent);
+
+    const resultComponent = forwardRefAndDisplayName(
+      ReactExtendComponents_ResultComponent
+    );
 
     setExtendableComponentInfoOnResultingComponent(
       baseComponent,

@@ -1,15 +1,11 @@
-import {
-  ComponentType,
-  createElement,
-  forwardRef,
-  ForwardRefRenderFunction,
-} from 'react';
+import { ComponentType, createElement, ForwardRefRenderFunction } from 'react';
 import {
   ExtendableComponentProps,
   ExtendableComponentType,
 } from '../../../types';
 import { capitalizeFirstLetter } from '../../../utils/capitalizeFirstLetter';
 import { forEachExtendableComponentChild } from '../../../utils/forEachExtendableComponentChild';
+import { forwardRefAndDisplayName } from '../../../utils/forwardRefAndDisplayName';
 import { InnerComponentsCommunicationValue } from '../InnerComponentsCommunicationContextValue';
 import { useConsumeObservableValue, ValueObservable } from '../ValueObservable';
 import { setAtPath } from './getAndSetAtPath';
@@ -60,7 +56,7 @@ export function createInnerComponent<Component extends ExtendableComponentType>(
     return createElement(component, rootProps);
   };
 
-  const resultingComponent = forwardRef(
+  const resultingComponent = forwardRefAndDisplayName(
     ReactExtendComponents_RootOrChildComponent
   );
 

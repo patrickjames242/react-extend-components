@@ -127,4 +127,13 @@ test('child component props are set and observed for components created with the
       zIndex: -5,
     },
   });
+
+  expect(component.root.findByType('div').props).toEqual({
+    className: 'red blah',
+    tabIndex: -4,
+    style: {
+      backgroundColor: 'red',
+    },
+    children: expect.anything(),
+  });
 });
