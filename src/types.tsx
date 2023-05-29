@@ -8,6 +8,10 @@ import {
 } from 'react';
 import type { allHtmlTags } from './utils/allHtmlTags';
 
+// TODO: merge function inner and outer props have incorrect types
+// TODO: add easy way to customize the child component props of component being extended
+// TODO: check and make sure children prop is not passed to child components
+
 /**
  * Use this symbol to add info to a component that is used as a base component
  * or child component in the `extend` function.

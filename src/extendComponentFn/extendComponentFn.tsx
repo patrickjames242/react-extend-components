@@ -15,6 +15,8 @@ import { useInnerComponents } from './helpers/useInnerComponents';
 import { useOuterPropsForInnerComponentGetter } from './helpers/usePropsGetter';
 import { useCreateValueObservable } from './helpers/ValueObservable';
 
+// Add an automatic innerRef prop when user overrides ref type
+
 export const extendComponentFn: ComponentExtenderFn = ((
   baseComponent: ExtendableComponentType,
   childComponentsOrPropsMergeFn?:
