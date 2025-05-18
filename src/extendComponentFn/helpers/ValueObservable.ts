@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { TinyEmitter } from 'tiny-emitter';
+import type { TinyEmitter as TinyEmitterT } from 'tiny-emitter';
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect';
+
+const TinyEmitter = require('tiny-emitter');
 
 export interface ValueObservable<V> {
   latestValue: () => V;
@@ -13,7 +15,7 @@ export function useCreateValueObservable<V>(value: V): ValueObservable<V> {
   const latestValueRef = useRef<V>(value);
   latestValueRef.current = value;
 
-  const emitter = useMemo(() => new TinyEmitter(), []);
+  const emitter = useMemo<TinyEmitterT>(() => new TinyEmitter(), []);
 
   useIsomorphicLayoutEffect(() => {
     emitter.emit(EMITTER_VALUE_EVENT, value);

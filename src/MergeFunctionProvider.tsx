@@ -1,4 +1,10 @@
-import { createContext, ReactNode, useContext, useMemo } from 'react';
+import {
+  createContext,
+  createElement,
+  ReactNode,
+  useContext,
+  useMemo,
+} from 'react';
 
 import { FCReturnType, PropsMergeFn } from './types';
 
@@ -23,9 +29,12 @@ export function MergeFunctionProvider({
     () => ({ propsMergeFn: finalMergeFn }),
     [finalMergeFn]
   );
-  return (
-    <MergeFunctionProviderContext.Provider value={value}>
-      {children}
-    </MergeFunctionProviderContext.Provider>
+
+  return createElement(
+    MergeFunctionProviderContext.Provider,
+    {
+      value,
+    },
+    children
   );
 }
